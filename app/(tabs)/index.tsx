@@ -15,6 +15,7 @@ import {
 } from "@/lib/data";
 import { useFavorites } from "@/lib/favorites-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useStore } from "@/lib/store-context";
 import { useMemo } from "react";
 
 function DeliveryToggle() {
@@ -157,6 +158,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { deliveryMode } = useCart();
 
+  const { availableStores, selectedStore, selectStore } = useStore();
   const featured = useMemo(() => getFeaturedProducts(), []);
   const express = useMemo(() => getExpressProducts().slice(0, 8), []);
   const premium = useMemo(() => getPremiumProducts(), []);
@@ -217,6 +219,59 @@ export default function HomeScreen() {
             Free delivery on orders over $50
           </Text>
         </View>
+
+        {/* Nearby Stores */}
+        {deliveryMode === "express" && availableStores.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Nearby Stores</Text>
+            </View>
+            <FlatList
+              data={availableStores}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+              ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+              renderItem={({ item: store }) => (
+                <TouchableOpacity
+                  onPress={() => selectStore(store.id)}
+                  style={[
+                    styles.storeCard,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: selectedStore?.id === store.id ? colors.primary : colors.border,
+                      borderWidth: selectedStore?.id === store.id ? 2 : 1,
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.storeAvatar, { backgroundColor: colors.primary + "15" }]}>
+                    <IconSymbol name="storefront.fill" size={20} color={colors.primary} />
+                  </View>
+                  <Text style={[styles.storeCardName, { color: colors.foreground }]} numberOfLines={1}>
+                    {store.name}
+                  </Text>
+                  <View style={styles.storeCardMeta}>
+                    <IconSymbol name="star.fill" size={10} color={colors.warning} />
+                    <Text style={[styles.storeCardRating, { color: colors.muted }]}>
+                      {store.averageRating?.toFixed(1) || "New"}
+                    </Text>
+                    <Text style={[styles.storeCardDist, { color: colors.muted }]}>
+                      {store.expressDeliveryRadius} mi
+                    </Text>
+                  </View>
+                  {selectedStore?.id === store.id && (
+                    <View style={[styles.selectedBadge, { backgroundColor: colors.primary }]}>
+                      <IconSymbol name="checkmark.circle.fill" size={12} color="#fff" />
+                      <Text style={{ color: "#fff", fontSize: 10, fontWeight: "600" }}>Selected</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
 
         {/* Featured Products */}
         <HorizontalProductRow title="Featured Picks" products={featured} showSeeAll />
@@ -456,5 +511,44 @@ const styles = StyleSheet.create({
   expressTagText: {
     fontSize: 10,
     fontWeight: "600",
+  },
+  storeCard: {
+    width: 130,
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    gap: 6,
+  },
+  storeAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  storeCardName: {
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  storeCardMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  storeCardRating: {
+    fontSize: 11,
+  },
+  storeCardDist: {
+    fontSize: 11,
+  },
+  selectedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: 2,
   },
 });

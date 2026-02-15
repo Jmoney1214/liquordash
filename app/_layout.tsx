@@ -21,6 +21,7 @@ import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-run
 import { CartProvider } from "@/lib/cart-store";
 import { OrdersProvider } from "@/lib/orders-store";
 import { FavoritesProvider } from "@/lib/favorites-store";
+import { StoreProvider } from "@/lib/store-context";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -83,16 +84,25 @@ export default function RootLayout() {
           <CartProvider>
             <OrdersProvider>
               <FavoritesProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="oauth/callback" />
-                  <Stack.Screen name="product/[id]" options={{ presentation: "card" }} />
-                  <Stack.Screen name="checkout" options={{ presentation: "card" }} />
-                  <Stack.Screen name="order/[id]" options={{ presentation: "card" }} />
-                  <Stack.Screen name="category/[id]" options={{ presentation: "card" }} />
-                  <Stack.Screen name="age-gate" options={{ presentation: "fullScreenModal" }} />
-                </Stack>
-                <StatusBar style="auto" />
+                <StoreProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="oauth/callback" />
+                    <Stack.Screen name="product/[id]" options={{ presentation: "card" }} />
+                    <Stack.Screen name="checkout" options={{ presentation: "card" }} />
+                    <Stack.Screen name="order/[id]" options={{ presentation: "card" }} />
+                    <Stack.Screen name="category/[id]" options={{ presentation: "card" }} />
+                    <Stack.Screen name="age-gate" options={{ presentation: "fullScreenModal" }} />
+                    <Stack.Screen name="store/onboarding" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/dashboard" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/orders" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/inventory" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/settings" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/analytics" options={{ presentation: "card" }} />
+                    <Stack.Screen name="store/order-detail/[id]" options={{ presentation: "card" }} />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </StoreProvider>
               </FavoritesProvider>
             </OrdersProvider>
           </CartProvider>

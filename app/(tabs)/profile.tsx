@@ -5,6 +5,7 @@ import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useFavorites } from "@/lib/favorites-store";
 import { useOrders } from "@/lib/orders-store";
+import { useStore } from "@/lib/store-context";
 
 function MenuItem({
   icon,
@@ -45,6 +46,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { favorites } = useFavorites();
   const { orders } = useOrders();
+  const { isOnboarded, storeProfile, setMode } = useStore();
 
   const showComingSoon = () => {
     Alert.alert("Coming Soon", "This feature is coming in a future update.");
@@ -114,6 +116,52 @@ export default function ProfileScreen() {
           <Text style={[styles.menuSectionTitle, { color: colors.muted }]}>Preferences</Text>
           <MenuItem icon="bell.fill" label="Notifications" onPress={showComingSoon} />
           <MenuItem icon="gearshape.fill" label="Settings" onPress={showComingSoon} />
+        </View>
+
+        {/* Store Partner Section */}
+        <View style={styles.menuSection}>
+          <Text style={[styles.menuSectionTitle, { color: colors.muted }]}>Store Partner</Text>
+          {isOnboarded ? (
+            <>
+              <MenuItem
+                icon="storefront.fill"
+                label="Store Dashboard"
+                value={storeProfile?.name}
+                onPress={() => {
+                  setMode("store");
+                  router.push("/store/dashboard" as any);
+                }}
+                color="#6A1B9A"
+              />
+              <MenuItem
+                icon="list.bullet"
+                label="Manage Orders"
+                onPress={() => router.push("/store/orders" as any)}
+                color="#6A1B9A"
+              />
+              <MenuItem
+                icon="tray.full.fill"
+                label="Manage Inventory"
+                onPress={() => router.push("/store/inventory" as any)}
+                color="#6A1B9A"
+              />
+            </>
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.push("/store/onboarding" as any)}
+              style={[styles.partnerCta, { backgroundColor: "#6A1B9A" }]}
+              activeOpacity={0.7}
+            >
+              <View style={styles.partnerCtaLeft}>
+                <IconSymbol name="storefront.fill" size={24} color="#fff" />
+                <View>
+                  <Text style={styles.partnerCtaTitle}>Become a Partner Store</Text>
+                  <Text style={styles.partnerCtaSubtitle}>List your store and start fulfilling orders</Text>
+                </View>
+              </View>
+              <IconSymbol name="chevron.right" size={18} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.menuSection}>
@@ -272,5 +320,29 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
+  },
+  partnerCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  partnerCtaLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  partnerCtaTitle: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  partnerCtaSubtitle: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    marginTop: 2,
   },
 });

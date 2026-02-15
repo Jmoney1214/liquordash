@@ -45,6 +45,22 @@ const MAPPING = {
   "person.badge.shield.checkmark.fill": "verified-user",
   "doc.text.fill": "description",
   "square.and.arrow.up.fill": "share",
+  "storefront.fill": "storefront",
+  "building.2.fill": "business",
+  "clock.arrow.circlepath": "history",
+  "chart.bar.fill": "bar-chart",
+  "dollarsign.circle.fill": "attach-money",
+  "tray.full.fill": "inventory",
+  "checkmark.seal.fill": "verified",
+  "exclamationmark.triangle.fill": "warning",
+  "arrow.triangle.2.circlepath": "sync",
+  "person.2.fill": "people",
+  "hand.thumbsup.fill": "thumb-up",
+  "hand.thumbsdown.fill": "thumb-down",
+  "photo.fill": "photo",
+  "pencil": "edit",
+  "calendar": "event",
+  "banknote.fill": "account-balance-wallet",
 } as IconMapping;
 
 export function IconSymbol({

@@ -24,3 +24,20 @@
 - [x] Generate custom app logo
 - [x] Update app.config.ts with branding
 - [x] Write unit tests for data helpers
+
+## Store Onboarding & Fulfillment System
+
+- [x] Create store data models (StoreProfile, StoreInventory, StoreOrder, StoreApplication)
+- [x] Build store context/state management for partner stores
+- [x] Build multi-step store onboarding flow (business info, license, hours, delivery zones)
+- [x] Build store application review/status screen
+- [x] Build store dashboard home with key metrics (pending orders, revenue, ratings)
+- [x] Build store order management (incoming orders, accept/reject, status updates)
+- [x] Build store inventory management (add/edit/remove products, stock levels, pricing)
+- [x] Build store settings screen (hours, delivery zones, payout info)
+- [x] Build store profile screen (store info, photos, ratings)
+- [x] Add store selector to customer home screen (nearby stores)
+- [x] Integrate store assignment into customer order flow
+- [x] Add store info to order detail/tracking screens
+- [x] Add "Become a Partner" entry point from Profile screen
+- [x] Build store switcher (customer mode vs store mode)
