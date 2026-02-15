@@ -22,6 +22,7 @@ import { CartProvider } from "@/lib/cart-store";
 import { OrdersProvider } from "@/lib/orders-store";
 import { FavoritesProvider } from "@/lib/favorites-store";
 import { StoreProvider } from "@/lib/store-context";
+import { CustomerProvider } from "@/lib/customer-store";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -85,23 +86,32 @@ export default function RootLayout() {
             <OrdersProvider>
               <FavoritesProvider>
                 <StoreProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="oauth/callback" />
-                    <Stack.Screen name="product/[id]" options={{ presentation: "card" }} />
-                    <Stack.Screen name="checkout" options={{ presentation: "card" }} />
-                    <Stack.Screen name="order/[id]" options={{ presentation: "card" }} />
-                    <Stack.Screen name="category/[id]" options={{ presentation: "card" }} />
-                    <Stack.Screen name="age-gate" options={{ presentation: "fullScreenModal" }} />
-                    <Stack.Screen name="store/onboarding" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/dashboard" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/orders" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/inventory" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/settings" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/analytics" options={{ presentation: "card" }} />
-                    <Stack.Screen name="store/order-detail/[id]" options={{ presentation: "card" }} />
-                  </Stack>
-                  <StatusBar style="auto" />
+                  <CustomerProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="oauth/callback" />
+                      <Stack.Screen name="product/[id]" options={{ presentation: "card" }} />
+                      <Stack.Screen name="checkout" options={{ presentation: "card" }} />
+                      <Stack.Screen name="order/[id]" options={{ presentation: "card" }} />
+                      <Stack.Screen name="category/[id]" options={{ presentation: "card" }} />
+                      <Stack.Screen name="age-gate" options={{ presentation: "fullScreenModal" }} />
+                      <Stack.Screen name="store/onboarding" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/dashboard" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/orders" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/inventory" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/settings" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/analytics" options={{ presentation: "card" }} />
+                      <Stack.Screen name="store/order-detail/[id]" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/edit-profile" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/addresses" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/payments" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/order-history" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/rewards" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/notifications" options={{ presentation: "card" }} />
+                      <Stack.Screen name="account/support" options={{ presentation: "card" }} />
+                    </Stack>
+                    <StatusBar style="auto" />
+                  </CustomerProvider>
                 </StoreProvider>
               </FavoritesProvider>
             </OrdersProvider>

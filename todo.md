@@ -41,3 +41,18 @@
 - [x] Add store info to order detail/tracking screens
 - [x] Add "Become a Partner" entry point from Profile screen
 - [x] Build store switcher (customer mode vs store mode)
+
+## Customer Portal
+
+- [x] Create customer data models and context (profile, addresses, payment methods, rewards)
+- [x] Build account/profile editing screen (name, email, phone, avatar)
+- [x] Build saved addresses screen (add/edit/delete, set default, address form)
+- [x] Build payment methods screen (add/edit/delete cards, set default)
+- [x] Build detailed order history screen with filtering and reorder button
+- [x] Build loyalty/rewards program screen (points balance, tier status, earn/redeem)
+- [x] Build notification preferences screen (push, email, SMS toggles)
+- [x] Build customer support/help center screen (FAQ, contact, chat)
+- [x] Build reorder flow (quick reorder from past orders)
+- [x] Integrate all customer portal screens into Profile tab navigation
+- [x] Add customer portal icon mappings
+- [x] Write unit tests for customer data models

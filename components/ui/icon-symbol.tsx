@@ -61,6 +61,7 @@ const MAPPING = {
   "pencil": "edit",
   "calendar": "event",
   "banknote.fill": "account-balance-wallet",
+  "circle": "radio-button-unchecked",
 } as IconMapping;
 
 export function IconSymbol({
