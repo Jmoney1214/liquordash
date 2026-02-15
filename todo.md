@@ -1,0 +1,26 @@
+# LiquorDash TODO
+
+- [x] Set up theme colors (warm terracotta/amber palette)
+- [x] Configure tab navigation (Home, Browse, Cart, Orders, Profile)
+- [x] Add icon mappings for all tabs
+- [x] Build Home screen with hero banner, delivery mode toggle, and product rows
+- [x] Build Browse screen with category grid and search bar
+- [x] Build Product List screen with filters and sorting
+- [x] Build Product Detail screen with full product info and actions
+- [x] Build Cart screen with grouped items and order summary
+- [x] Build Checkout flow with address, payment, and age verification
+- [x] Build Orders screen with active/past order tabs
+- [x] Build Order Detail screen with status timeline and tracking
+- [x] Build Profile screen with user info and settings menu
+- [x] Build Age Verification modal/gate
+- [x] Implement product data store (AsyncStorage-based)
+- [x] Implement cart state management
+- [x] Implement order state management
+- [x] Implement search with autocomplete
+- [x] Implement category filtering
+- [x] Implement delivery mode toggle (Express vs Ship)
+- [x] Implement gifting flow (gift message, recipient address)
+- [x] Implement favorites/wishlist
+- [x] Generate custom app logo
+- [x] Update app.config.ts with branding
+- [x] Write unit tests for data helpers
