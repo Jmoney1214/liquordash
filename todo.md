@@ -56,3 +56,20 @@
 - [x] Integrate all customer portal screens into Profile tab navigation
 - [x] Add customer portal icon mappings
 - [x] Write unit tests for customer data models
+
+## Driver/Courier Tracking Module
+
+- [x] Create driver data models (DriverProfile, DeliveryJob, DriverEarnings, DriverLocation)
+- [x] Build driver context/state management with simulated GPS tracking
+- [x] Add driver-related icon mappings to icon-symbol.tsx
+- [x] Build driver dashboard screen (available jobs, stats, online/offline toggle)
+- [x] Build active delivery screen with step-by-step navigation and status updates
+- [x] Build driver earnings screen (daily/weekly/monthly breakdown, payout history)
+- [x] Build driver delivery history screen
+- [x] Build driver profile/settings screen (vehicle info, documents, availability)
+- [x] Build customer-facing live tracking map with driver location
+- [x] Integrate live tracking into order detail screen
+- [x] Add "Become a Driver" entry point from Profile screen
+- [x] Add driver mode switcher (customer mode vs driver mode)
+- [x] Integrate driver routes into app navigation
+- [x] Write unit tests for driver data models

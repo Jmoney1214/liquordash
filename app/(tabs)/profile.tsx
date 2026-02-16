@@ -7,6 +7,7 @@ import { useFavorites } from "@/lib/favorites-store";
 import { useOrders } from "@/lib/orders-store";
 import { useStore } from "@/lib/store-context";
 import { useCustomer, TIER_COLORS } from "@/lib/customer-store";
+import { useDriver } from "@/lib/driver-store";
 
 function MenuItem({
   icon,
@@ -56,6 +57,7 @@ export default function ProfileScreen() {
   const { orders, activeOrders } = useOrders();
   const { isOnboarded, storeProfile, setMode } = useStore();
   const { profile, rewards, addresses, paymentMethods, notifications } = useCustomer();
+  const { isRegistered: isDriverRegistered, profile: driverProfile } = useDriver();
 
   const tierColor = TIER_COLORS[rewards.tier];
 
@@ -228,6 +230,43 @@ export default function ProfileScreen() {
                 <View>
                   <Text style={styles.partnerCtaTitle}>Become a Partner Store</Text>
                   <Text style={styles.partnerCtaSubtitle}>List your store and start fulfilling orders</Text>
+                </View>
+              </View>
+              <IconSymbol name="chevron.right" size={18} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Driver Section */}
+        <View style={styles.menuSection}>
+          <Text style={[styles.menuSectionTitle, { color: colors.muted }]}>Driver</Text>
+          {isDriverRegistered ? (
+            <>
+              <MenuItem
+                icon="car.fill"
+                label="Driver Dashboard"
+                value={`${driverProfile.firstName} ${driverProfile.lastName}`}
+                onPress={() => router.push("/driver/dashboard" as any)}
+                color="#1B6B3A"
+              />
+              <MenuItem
+                icon="dollarsign.circle.fill"
+                label="Earnings"
+                onPress={() => router.push("/driver/earnings" as any)}
+                color="#1B6B3A"
+              />
+            </>
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.push("/driver/onboarding" as any)}
+              style={[styles.partnerCta, { backgroundColor: "#1B6B3A" }]}
+              activeOpacity={0.7}
+            >
+              <View style={styles.partnerCtaLeft}>
+                <IconSymbol name="car.fill" size={24} color="#fff" />
+                <View>
+                  <Text style={styles.partnerCtaTitle}>Become a Driver</Text>
+                  <Text style={styles.partnerCtaSubtitle}>Deliver orders and earn on your schedule</Text>
                 </View>
               </View>
               <IconSymbol name="chevron.right" size={18} color="#fff" />

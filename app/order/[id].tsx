@@ -165,6 +165,19 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Live Tracking Button for Express Orders */}
+        {order.deliveryMode === "express" && !isCancelled && order.status !== "delivered" && (
+          <TouchableOpacity
+            onPress={() => router.push(`/tracking/${order.id}` as any)}
+            style={[styles.trackLiveBtn, { backgroundColor: "#1B6B3A" }]}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name="location.fill" size={18} color="#fff" />
+            <Text style={styles.trackLiveBtnText}>Track Live</Text>
+            <IconSymbol name="chevron.right" size={16} color="#fff" />
+          </TouchableOpacity>
+        )}
+
         {/* Estimated Delivery */}
         <View style={[styles.estimateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <IconSymbol name="clock.fill" size={20} color={colors.primary} />
@@ -504,5 +517,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  trackLiveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  trackLiveBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    flex: 1,
   },
 });

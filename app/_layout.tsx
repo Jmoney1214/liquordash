@@ -23,6 +23,7 @@ import { OrdersProvider } from "@/lib/orders-store";
 import { FavoritesProvider } from "@/lib/favorites-store";
 import { StoreProvider } from "@/lib/store-context";
 import { CustomerProvider } from "@/lib/customer-store";
+import { DriverProvider } from "@/lib/driver-store";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -87,6 +88,7 @@ export default function RootLayout() {
               <FavoritesProvider>
                 <StoreProvider>
                   <CustomerProvider>
+                    <DriverProvider>
                     <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(tabs)" />
                       <Stack.Screen name="oauth/callback" />
@@ -109,8 +111,16 @@ export default function RootLayout() {
                       <Stack.Screen name="account/rewards" options={{ presentation: "card" }} />
                       <Stack.Screen name="account/notifications" options={{ presentation: "card" }} />
                       <Stack.Screen name="account/support" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/onboarding" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/dashboard" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/active-delivery" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/earnings" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/history" options={{ presentation: "card" }} />
+                      <Stack.Screen name="driver/profile" options={{ presentation: "card" }} />
+                      <Stack.Screen name="tracking/[id]" options={{ presentation: "card" }} />
                     </Stack>
                     <StatusBar style="auto" />
+                    </DriverProvider>
                   </CustomerProvider>
                 </StoreProvider>
               </FavoritesProvider>
