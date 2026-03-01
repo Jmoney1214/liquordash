@@ -8,6 +8,7 @@ import { useOrders } from "@/lib/orders-store";
 import { useStore } from "@/lib/store-context";
 import { useCustomer, TIER_COLORS } from "@/lib/customer-store";
 import { useDriver } from "@/lib/driver-store";
+import { useAdmin } from "@/lib/admin-store";
 
 function MenuItem({
   icon,
@@ -58,6 +59,7 @@ export default function ProfileScreen() {
   const { isOnboarded, storeProfile, setMode } = useStore();
   const { profile, rewards, addresses, paymentMethods, notifications } = useCustomer();
   const { isRegistered: isDriverRegistered, profile: driverProfile } = useDriver();
+  const { isAdmin, metrics, pendingStoreApps, platformUsers } = useAdmin();
 
   const tierColor = TIER_COLORS[rewards.tier];
 
@@ -271,6 +273,68 @@ export default function ProfileScreen() {
               </View>
               <IconSymbol name="chevron.right" size={18} color="#fff" />
             </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Admin Section */}
+        <View style={styles.menuSection}>
+          <Text style={[styles.menuSectionTitle, { color: colors.muted }]}>Admin</Text>
+          {isAdmin ? (
+            <>
+              <MenuItem
+                icon="chart.bar.fill"
+                label="Admin Dashboard"
+                value={`${metrics.activeOrders} active`}
+                onPress={() => router.push("/admin/dashboard" as any)}
+                color="#D93025"
+                badge={pendingStoreApps > 0 ? `${pendingStoreApps}` : undefined}
+              />
+              <MenuItem
+                icon="storefront.fill"
+                label="Store Applications"
+                value={`${pendingStoreApps} pending`}
+                onPress={() => router.push("/admin/store-applications" as any)}
+                color="#D93025"
+              />
+              <MenuItem
+                icon="bag.fill"
+                label="Order Monitor"
+                value={`${metrics.totalOrders} total`}
+                onPress={() => router.push("/admin/orders" as any)}
+                color="#D93025"
+              />
+              <MenuItem
+                icon="car.fill"
+                label="Driver Management"
+                value={`${metrics.totalDrivers} drivers`}
+                onPress={() => router.push("/admin/driver-management" as any)}
+                color="#D93025"
+              />
+              <MenuItem
+                icon="person.2.fill"
+                label="User Management"
+                value={`${platformUsers.length} users`}
+                onPress={() => router.push("/admin/users" as any)}
+                color="#D93025"
+              />
+              <MenuItem
+                icon="chart.line.uptrend.xyaxis"
+                label="Analytics"
+                onPress={() => router.push("/admin/analytics" as any)}
+                color="#D93025"
+              />
+              <MenuItem
+                icon="gearshape.fill"
+                label="Platform Settings"
+                onPress={() => router.push("/admin/settings" as any)}
+                color="#D93025"
+              />
+            </>
+          ) : (
+            <View style={[styles.adminNote, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <IconSymbol name="lock.fill" size={18} color={colors.muted} />
+              <Text style={[styles.adminNoteText, { color: colors.muted }]}>Admin access is restricted to platform operators</Text>
+            </View>
           )}
         </View>
 
@@ -498,5 +562,18 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.75)",
     fontSize: 12,
     marginTop: 2,
+  },
+  adminNote: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 10,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  adminNoteText: {
+    fontSize: 13,
+    flex: 1,
   },
 });

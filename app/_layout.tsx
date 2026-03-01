@@ -24,6 +24,7 @@ import { FavoritesProvider } from "@/lib/favorites-store";
 import { StoreProvider } from "@/lib/store-context";
 import { CustomerProvider } from "@/lib/customer-store";
 import { DriverProvider } from "@/lib/driver-store";
+import { AdminProvider } from "@/lib/admin-store";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -89,6 +90,7 @@ export default function RootLayout() {
                 <StoreProvider>
                   <CustomerProvider>
                     <DriverProvider>
+                    <AdminProvider>
                     <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(tabs)" />
                       <Stack.Screen name="oauth/callback" />
@@ -118,8 +120,16 @@ export default function RootLayout() {
                       <Stack.Screen name="driver/history" options={{ presentation: "card" }} />
                       <Stack.Screen name="driver/profile" options={{ presentation: "card" }} />
                       <Stack.Screen name="tracking/[id]" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/dashboard" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/store-applications" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/orders" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/driver-management" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/users" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/analytics" options={{ presentation: "card" }} />
+                      <Stack.Screen name="admin/settings" options={{ presentation: "card" }} />
                     </Stack>
                     <StatusBar style="auto" />
+                    </AdminProvider>
                     </DriverProvider>
                   </CustomerProvider>
                 </StoreProvider>

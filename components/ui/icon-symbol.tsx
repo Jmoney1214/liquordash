@@ -84,6 +84,17 @@ const MAPPING = {
   "hand.raised.fill": "pan-tool",
   "bubble.left.fill": "chat-bubble",
   "trophy.fill": "emoji-events",
+  "shield.lefthalf.filled": "admin-panel-settings",
+  "rectangle.grid.2x2.fill": "dashboard",
+  "person.crop.circle.badge.checkmark": "how-to-reg",
+  "exclamationmark.circle.fill": "error",
+  "arrow.clockwise": "refresh",
+  "slider.horizontal.3": "tune",
+  "percent": "percent",
+  "megaphone.fill": "campaign",
+  "wrench.fill": "build",
+  "eye.fill": "visibility",
+  "nosign": "block",
 } as unknown as IconMapping;
 
 export function IconSymbol({

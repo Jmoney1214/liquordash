@@ -73,3 +73,17 @@
 - [x] Add driver mode switcher (customer mode vs driver mode)
 - [x] Integrate driver routes into app navigation
 - [x] Write unit tests for driver data models
+
+## Admin Dashboard
+
+- [x] Create admin data models and context (platform stats, store applications, driver approvals, orders)
+- [x] Build admin dashboard home with platform-wide KPIs and alerts
+- [x] Build store application review screen (pending/approved/rejected, detail view, approve/reject actions)
+- [x] Build platform order monitoring screen (all orders across stores, filters, status overview)
+- [x] Build driver management screen (pending approvals, active drivers, suspend/approve actions)
+- [x] Build user management screen (customer list, activity, account actions)
+- [x] Build platform analytics screen (revenue charts, order trends, growth metrics)
+- [x] Build platform settings screen (commission rates, delivery fees, promo management)
+- [x] Add "Admin Panel" entry point from Profile screen
+- [x] Integrate admin routes into app navigation
+- [x] Write unit tests for admin data models
