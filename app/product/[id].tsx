@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart-store";
 import { useFavorites } from "@/lib/favorites-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductById, formatPrice } from "@/lib/data";
+import { useProductById } from "@/hooks/use-api";
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,7 +17,7 @@ export default function ProductDetailScreen() {
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const product = getProductById(id);
+  const { product } = useProductById(id);
   const [quantity, setQuantity] = useState(1);
   const [isGift, setIsGift] = useState(false);
   const [giftMessage, setGiftMessage] = useState("");

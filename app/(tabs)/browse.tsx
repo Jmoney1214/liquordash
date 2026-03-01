@@ -13,6 +13,7 @@ import {
   formatPrice,
   CategoryInfo,
 } from "@/lib/data";
+import { useCategories, useProductSearch } from "@/hooks/use-api";
 import { useFavorites } from "@/lib/favorites-store";
 import { useCart } from "@/lib/cart-store";
 
@@ -81,11 +82,13 @@ export default function BrowseScreen() {
   const colors = useColors();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const { categories } = useCategories();
+  const { products: searchResults } = useProductSearch(query.trim());
 
   const results = useMemo(() => {
     if (query.trim().length < 2) return [];
-    return searchProducts(query.trim());
-  }, [query]);
+    return searchResults;
+  }, [query, searchResults]);
 
   const isSearching = query.trim().length >= 2;
 
@@ -129,7 +132,7 @@ export default function BrowseScreen() {
         />
       ) : (
         <FlatList
-          data={CATEGORIES}
+          data={categories}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={{ gap: 12 }}

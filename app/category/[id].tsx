@@ -14,6 +14,7 @@ import {
   formatPrice,
   Category,
 } from "@/lib/data";
+import { useProductsByCategory, useCategories } from "@/hooks/use-api";
 
 type SortOption = "popular" | "price-low" | "price-high" | "rating";
 
@@ -71,9 +72,11 @@ export default function CategoryScreen() {
   const colors = useColors();
   const [sort, setSort] = useState<SortOption>("popular");
 
-  const category = CATEGORIES.find((c) => c.id === id);
+  const { categories } = useCategories();
+  const { products: catProducts } = useProductsByCategory(id as string);
+  const category = categories.find((c) => c.id === id);
   const products = useMemo(() => {
-    const items = getProductsByCategory(id as Category);
+    const items = catProducts;
     switch (sort) {
       case "price-low":
         return [...items].sort((a, b) => a.price - b.price);
@@ -84,7 +87,7 @@ export default function CategoryScreen() {
       default:
         return items;
     }
-  }, [id, sort]);
+  }, [catProducts, sort]);
 
   const sortOptions: { key: SortOption; label: string }[] = [
     { key: "popular", label: "Popular" },

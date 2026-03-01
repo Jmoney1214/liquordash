@@ -87,3 +87,22 @@
 - [x] Add "Admin Panel" entry point from Profile screen
 - [x] Integrate admin routes into app navigation
 - [x] Write unit tests for admin data models
+
+## PostgreSQL Backend Integration
+
+- [x] Review server README and existing Drizzle/tRPC setup
+- [x] Create Drizzle schema tables for products, categories, orders, order items, user profiles, addresses, and cart
+- [x] Run db:push to create database tables
+- [x] Build tRPC routers for products (list, getById, search, filter by category)
+- [x] Build tRPC routers for orders (create, list, getById, update status)
+- [x] Build tRPC routers for user profiles (get, update, addresses CRUD)
+- [x] Build tRPC router for cart (sync cart to server)
+- [x] Create seed script to populate products and categories
+- [x] Update Home screen to fetch products from API
+- [x] Update Browse screen to fetch and search from API
+- [x] Update Product Detail screen to fetch from API
+- [x] Update Cart to sync with server
+- [x] Update Orders to persist to database
+- [x] Update Customer Portal to use server data
+- [x] Test full end-to-end database flow
+- [x] Write integration tests for API endpoints

@@ -13,6 +13,7 @@ import {
   formatPrice,
   DeliveryMode,
 } from "@/lib/data";
+import { useFeaturedProducts, useExpressProducts, usePremiumProducts, useProducts } from "@/hooks/use-api";
 import { useFavorites } from "@/lib/favorites-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useStore } from "@/lib/store-context";
@@ -159,12 +160,17 @@ export default function HomeScreen() {
   const { deliveryMode } = useCart();
 
   const { availableStores, selectedStore, selectStore } = useStore();
-  const featured = useMemo(() => getFeaturedProducts(), []);
-  const express = useMemo(() => getExpressProducts().slice(0, 8), []);
-  const premium = useMemo(() => getPremiumProducts(), []);
+  const { products: featuredApi } = useFeaturedProducts();
+  const { products: expressApi } = useExpressProducts();
+  const { products: premiumApi } = usePremiumProducts();
+  const { products: allProducts } = useProducts();
+
+  const featured = featuredApi;
+  const express = expressApi.slice(0, 8);
+  const premium = premiumApi;
   const deals = useMemo(
-    () => PRODUCTS.filter((p) => p.price < 30 && p.inStock).slice(0, 8),
-    []
+    () => allProducts.filter((p) => p.price < 30 && p.inStock).slice(0, 8),
+    [allProducts]
   );
 
   return (
