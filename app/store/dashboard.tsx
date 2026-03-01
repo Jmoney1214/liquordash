@@ -5,6 +5,8 @@ import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useStore } from "@/lib/store-context";
 import { formatCurrency, StoreOrder } from "@/lib/store-data";
+import { useStoreNotifications } from "@/hooks/use-websocket";
+import { WsStatus, WsOfflineBanner } from "@/components/ws-status";
 
 function MetricCard({
   label,
@@ -118,12 +120,18 @@ export default function StoreDashboardScreen() {
   const router = useRouter();
   const { storeProfile, metrics, pendingOrders, activeOrders, completedOrders, setMode } = useStore();
 
+  // Real-time WebSocket notifications for this store
+  const { newOrders: wsNewOrders, driverArrivals, isConnected } = useStoreNotifications(
+    storeProfile?.id || null
+  );
+
   const allActiveOrders = [...pendingOrders, ...activeOrders].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   return (
     <ScreenContainer>
+      <WsOfflineBanner />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -151,8 +159,28 @@ export default function StoreDashboardScreen() {
           <View style={[styles.liveStatus, { backgroundColor: colors.success + "15", borderColor: colors.success + "30" }]}>
             <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
             <Text style={[styles.liveText, { color: colors.success }]}>Store is Live</Text>
-            <Text style={[styles.liveSubtext, { color: colors.muted }]}>Accepting orders</Text>
+            <WsStatus showLabel size="small" />
           </View>
+
+          {/* Real-time new order alert */}
+          {wsNewOrders.length > 0 && (
+            <View style={[styles.wsAlert, { backgroundColor: "#FFF3E0", borderColor: "#FFB74D" }]}>
+              <IconSymbol name="bell.fill" size={16} color="#E65100" />
+              <Text style={{ color: "#E65100", fontWeight: "700", flex: 1, marginLeft: 8 }}>
+                {wsNewOrders.length} new order{wsNewOrders.length > 1 ? "s" : ""} received!
+              </Text>
+            </View>
+          )}
+
+          {/* Driver arriving alert */}
+          {driverArrivals.length > 0 && (
+            <View style={[styles.wsAlert, { backgroundColor: "#E3F2FD", borderColor: "#64B5F6" }]}>
+              <IconSymbol name="car.fill" size={16} color="#1565C0" />
+              <Text style={{ color: "#1565C0", fontWeight: "700", flex: 1, marginLeft: 8 }}>
+                Driver arriving for pickup!
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Metrics Grid */}
@@ -320,6 +348,14 @@ export default function StoreDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  wsAlert: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 4,
+  },
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,

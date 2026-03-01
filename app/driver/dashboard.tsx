@@ -5,6 +5,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useDriver, formatCurrency, getTimeAgo, DeliveryJob } from "@/lib/driver-store";
+import { useDriverNotifications } from "@/hooks/use-websocket";
+import { WsStatus, WsOfflineBanner } from "@/components/ws-status";
 
 function StatCard({ label, value, icon, color }: { label: string; value: string; icon: any; color: string }) {
   const colors = useColors();
@@ -78,6 +80,11 @@ export default function DriverDashboardScreen() {
   const router = useRouter();
   const { isOnline, profile, activeJob, availableJobs, earningsSummary, goOnline, goOffline, acceptJob } = useDriver();
 
+  // Real-time WebSocket notifications for driver
+  const { jobUpdates: wsJobUpdates, isConnected } = useDriverNotifications(
+    isOnline ? (profile.id || "driver-1") : null
+  );
+
   const handleToggleOnline = () => {
     if (isOnline) {
       Alert.alert("Go Offline?", "You won't receive new delivery requests.", [
@@ -105,13 +112,17 @@ export default function DriverDashboardScreen() {
 
   return (
     <ScreenContainer>
+      <WsOfflineBanner />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
           <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Driver Dashboard</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={[styles.headerTitle, { color: colors.foreground }]}>Driver Dashboard</Text>
+            {isOnline && <WsStatus showLabel size="small" />}
+          </View>
           <Text style={[styles.headerSubtitle, { color: colors.muted }]}>
             {profile.firstName} {profile.lastName} • ★ {profile.rating.toFixed(1)}
           </Text>

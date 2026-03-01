@@ -106,3 +106,16 @@
 - [x] Update Customer Portal to use server data
 - [x] Test full end-to-end database flow
 - [x] Write integration tests for API endpoints
+
+## WebSocket Real-Time Order Updates
+
+- [x] Build WebSocket server with Express upgrade handler and room-based channels
+- [x] Create event types for order status, driver location, store alerts, and admin notifications
+- [x] Build client-side WebSocket hook with auto-reconnect and connection state management
+- [x] Create real-time event context provider for app-wide event distribution
+- [x] Integrate live order status updates into customer order detail/tracking screens
+- [x] Integrate new order alerts into store dashboard with sound/haptic notification
+- [x] Integrate delivery job updates into driver dashboard
+- [x] Integrate platform-wide live feed into admin dashboard
+- [x] Add connection status indicator to app UI
+- [x] Write unit tests for WebSocket event types and message handling

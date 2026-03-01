@@ -1,4 +1,4 @@
-import { FlatList, Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useOrders } from "@/lib/orders-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { formatPrice, Order, OrderStatus } from "@/lib/data";
+import { WsOfflineBanner } from "@/components/ws-status";
 
 function getStatusColor(status: OrderStatus, colors: any) {
   switch (status) {
@@ -124,6 +125,7 @@ export default function OrdersScreen() {
 
   return (
     <ScreenContainer>
+      <WsOfflineBanner />
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.foreground }]}>Orders</Text>
       </View>

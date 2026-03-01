@@ -5,6 +5,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useOrders } from "@/lib/orders-store";
+import { useOrderTracking } from "@/hooks/use-websocket";
+import { WsStatus, WsOfflineBanner } from "@/components/ws-status";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -82,8 +84,35 @@ export default function LiveTrackingScreen() {
   const [location, setLocation] = useState(ROUTE_POINTS[0]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Simulate driver movement
+  // Real-time WebSocket tracking
+  const {
+    status: wsStatus,
+    driverLocation: wsDriverLocation,
+    eta: wsEta,
+    driverInfo: wsDriverInfo,
+    events: wsEvents,
+    isConnected,
+  } = useOrderTracking(id || null);
+
+  // Use WS driver location if available, otherwise simulate
   useEffect(() => {
+    if (wsDriverLocation) {
+      setLocation({
+        latitude: wsDriverLocation.latitude,
+        longitude: wsDriverLocation.longitude,
+        heading: wsDriverLocation.heading,
+        speed: 0,
+        eta: wsEta ?? location.eta,
+      });
+      // Estimate progress from ETA
+      if (wsEta !== null) {
+        const estimatedProgress = Math.max(0, Math.min(1, 1 - (wsEta / 15)));
+        const idx = Math.round(estimatedProgress * (ROUTE_POINTS.length - 1));
+        setCurrentPointIndex(idx);
+      }
+      return;
+    }
+    // Fallback: simulate driver movement
     intervalRef.current = setInterval(() => {
       setCurrentPointIndex((prev) => {
         const next = Math.min(prev + 1, ROUTE_POINTS.length - 1);
@@ -92,7 +121,7 @@ export default function LiveTrackingScreen() {
       });
     }, 4000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, []);
+  }, [wsDriverLocation, wsEta]);
 
   const progress = currentPointIndex / (ROUTE_POINTS.length - 1);
   const trackingStatus = getTrackingStatus(progress);
@@ -102,15 +131,26 @@ export default function LiveTrackingScreen() {
     Linking.openURL(`tel:${SIMULATED_DRIVER.phone}`);
   };
 
+  // Use WS driver info if available
+  const displayDriver = wsDriverInfo
+    ? { ...SIMULATED_DRIVER, name: wsDriverInfo.name, phone: wsDriverInfo.phone, vehicle: wsDriverInfo.vehicle }
+    : SIMULATED_DRIVER;
+
   return (
     <ScreenContainer>
+      {/* Offline Banner */}
+      <WsOfflineBanner />
+
       {/* Header */}
       <View style={[styles.header, { backgroundColor: statusConfig.color }]}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
           <IconSymbol name="arrow.left" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Live Tracking</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.headerTitle}>Live Tracking</Text>
+            <WsStatus showLabel size="small" />
+          </View>
           <Text style={styles.headerSubtitle}>{order?.id || id}</Text>
         </View>
         <TouchableOpacity onPress={handleCallDriver} activeOpacity={0.6}>
@@ -282,6 +322,7 @@ export default function LiveTrackingScreen() {
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14 },
   headerCenter: { flex: 1, alignItems: "center" },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   headerTitle: { color: "#fff", fontSize: 16, fontWeight: "800" },
   headerSubtitle: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 1 },
   mapArea: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, overflow: "hidden" },

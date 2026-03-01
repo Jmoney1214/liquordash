@@ -4,6 +4,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAdmin, formatAdminCurrency, formatCompactNumber } from "@/lib/admin-store";
+import { useAdminNotifications } from "@/hooks/use-websocket";
+import { WsStatus, WsOfflineBanner } from "@/components/ws-status";
 
 function KPICard({ label, value, subValue, icon, color, onPress }: {
   label: string; value: string; subValue?: string; icon: any; color: string; onPress?: () => void;
@@ -87,6 +89,9 @@ export default function AdminDashboard() {
     storeApplications, driverApprovals, platformOrders,
   } = useAdmin();
 
+  // Real-time WebSocket feed for admin
+  const { alerts: wsAlerts, newOrders: wsNewOrders, newApplications: wsNewApps, unreadCount, markAllRead, isConnected } = useAdminNotifications();
+
   const maxRevenue = Math.max(...revenueData.map((d) => d.revenue));
 
   const recentOrders = [...platformOrders]
@@ -95,12 +100,16 @@ export default function AdminDashboard() {
 
   return (
     <ScreenContainer edges={["top", "left", "right"]}>
+      <WsOfflineBanner />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.6}>
           <IconSymbol name="arrow.left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Admin Dashboard</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={[styles.headerTitle, { color: colors.foreground }]}>Admin Dashboard</Text>
+            <WsStatus showLabel size="small" />
+          </View>
           <Text style={[styles.headerSub, { color: colors.muted }]}>Platform Overview</Text>
         </View>
         <View style={{ width: 40 }} />
