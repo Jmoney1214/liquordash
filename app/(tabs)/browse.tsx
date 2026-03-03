@@ -1,7 +1,7 @@
 import { FlatList, Text, View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -16,6 +16,7 @@ import {
 import { useCategories, useProductSearch } from "@/hooks/use-api";
 import { useFavorites } from "@/lib/favorites-store";
 import { useCart } from "@/lib/cart-store";
+import { SearchLoadingSkeleton } from "@/components/search-loading-skeleton";
 
 function CategoryTile({ cat, onPress }: { cat: CategoryInfo; onPress: () => void }) {
   const colors = useColors();
@@ -83,7 +84,21 @@ export default function BrowseScreen() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const { categories } = useCategories();
-  const { products: searchResults } = useProductSearch(query.trim());
+  const { products: searchResults, isLoading: isSearchLoading } = useProductSearch(query.trim());
+
+  // Debounced query to avoid showing skeleton on every keystroke
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedQuery(query.trim());
+    }, 300);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [query]);
 
   const results = useMemo(() => {
     if (query.trim().length < 2) return [];
@@ -91,6 +106,11 @@ export default function BrowseScreen() {
   }, [query, searchResults]);
 
   const isSearching = query.trim().length >= 2;
+
+  // Show loading skeleton when the user is typing a new query that hasn't resolved yet
+  const showLoading = isSearching && (
+    isSearchLoading || (debouncedQuery !== query.trim() && query.trim().length >= 2)
+  );
 
   return (
     <ScreenContainer>
@@ -116,21 +136,29 @@ export default function BrowseScreen() {
       </View>
 
       {isSearching ? (
-        <FlatList
-          key="search-results"
-          data={results}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <SearchResultItem product={item} />}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-          ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.border }} />}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={[styles.emptyText, { color: colors.muted }]}>
-                No results for "{query}"
-              </Text>
-            </View>
-          }
-        />
+        showLoading ? (
+          <SearchLoadingSkeleton />
+        ) : (
+          <FlatList
+            key="search-results"
+            data={results}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <SearchResultItem product={item} />}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+            ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.border }} />}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <IconSymbol name="magnifyingglass" size={40} color={colors.muted + "60"} />
+                <Text style={[styles.emptyText, { color: colors.muted, marginTop: 12 }]}>
+                  No results for "{query}"
+                </Text>
+                <Text style={[styles.emptyHint, { color: colors.muted }]}>
+                  Try a different search term
+                </Text>
+              </View>
+            }
+          />
+        )
       ) : (
         <FlatList
           key="category-grid-2col"
@@ -253,5 +281,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
+    fontWeight: "500",
+  },
+  emptyHint: {
+    fontSize: 13,
+    marginTop: 4,
   },
 });

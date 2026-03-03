@@ -138,3 +138,4 @@
 ## Bug Fixes
 
 - [x] Fix FlatList numColumns error on native: "Changing numColumns on the fly is not supported" — add key prop to FlatList when numColumns changes dynamically
+- [x] Add loading animation to Browse screen while search results are being fetched
