@@ -134,3 +134,7 @@
 - [x] Integrate notification deep linking (tap notification → navigate to relevant screen)
 - [x] Connect with existing notification preferences from customer portal
 - [x] Write unit tests for notification service
+
+## Bug Fixes
+
+- [x] Fix FlatList numColumns error on native: "Changing numColumns on the fly is not supported" — add key prop to FlatList when numColumns changes dynamically

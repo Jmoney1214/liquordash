@@ -106,7 +106,7 @@ export default function OrderHistoryScreen() {
       addItem(item.product, item.quantity);
     });
     setDeliveryMode(order.deliveryMode);
-    router.push("/(tabs)/cart");
+    router.push("/(tabs)/cart" as any);
   };
 
   return (

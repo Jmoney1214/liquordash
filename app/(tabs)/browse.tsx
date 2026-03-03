@@ -117,6 +117,7 @@ export default function BrowseScreen() {
 
       {isSearching ? (
         <FlatList
+          key="search-results"
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <SearchResultItem product={item} />}
@@ -132,6 +133,7 @@ export default function BrowseScreen() {
         />
       ) : (
         <FlatList
+          key="category-grid-2col"
           data={categories}
           keyExtractor={(item) => item.id}
           numColumns={2}
