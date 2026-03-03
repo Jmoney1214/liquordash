@@ -119,3 +119,18 @@
 - [x] Integrate platform-wide live feed into admin dashboard
 - [x] Add connection status indicator to app UI
 - [x] Write unit tests for WebSocket event types and message handling
+
+## Push Notifications (Expo Notifications)
+
+- [x] Read Expo Notifications docs and understand permission/token flow
+- [x] Build notification service with permission request, token registration, and local scheduling
+- [x] Build server-side push notification delivery via Expo Push API
+- [x] Create notification channel configuration (order updates, promotions, driver alerts)
+- [x] Integrate push notifications into order lifecycle (status changes trigger push)
+- [x] Add push notification triggers for store new order alerts
+- [x] Add push notification triggers for driver delivery requests
+- [x] Add push notification triggers for admin alerts (new applications, high volume)
+- [x] Build in-app notification center/inbox screen
+- [x] Integrate notification deep linking (tap notification → navigate to relevant screen)
+- [x] Connect with existing notification preferences from customer portal
+- [x] Write unit tests for notification service

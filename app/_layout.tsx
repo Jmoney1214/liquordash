@@ -25,6 +25,8 @@ import { StoreProvider } from "@/lib/store-context";
 import { CustomerProvider } from "@/lib/customer-store";
 import { DriverProvider } from "@/lib/driver-store";
 import { AdminProvider } from "@/lib/admin-store";
+import { NotificationProvider } from "@/lib/notification-provider";
+import { useNotificationNavigation } from "@/hooks/use-notification-navigation";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -32,6 +34,12 @@ const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
 export const unstable_settings = {
   anchor: "(tabs)",
 };
+
+/** Thin wrapper so useNotificationNavigation runs inside the router context */
+function NotificationNavigationHandler() {
+  useNotificationNavigation();
+  return null;
+}
 
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
@@ -91,6 +99,8 @@ export default function RootLayout() {
                   <CustomerProvider>
                     <DriverProvider>
                     <AdminProvider>
+                    <NotificationProvider>
+                    <NotificationNavigationHandler />
                     <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(tabs)" />
                       <Stack.Screen name="oauth/callback" />
@@ -129,6 +139,7 @@ export default function RootLayout() {
                       <Stack.Screen name="admin/settings" options={{ presentation: "card" }} />
                     </Stack>
                     <StatusBar style="auto" />
+                    </NotificationProvider>
                     </AdminProvider>
                     </DriverProvider>
                   </CustomerProvider>

@@ -1,21 +1,25 @@
-import { Text, View, TouchableOpacity, ScrollView, StyleSheet, Switch } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert, Platform } from "react-native";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useCustomer, NotificationPreferences } from "@/lib/customer-store";
+import { useCustomer, type NotificationPreferences } from "@/lib/customer-store";
+import { useNotificationContext } from "@/lib/notification-provider";
+import { sendLocalNotification, NOTIFICATION_CHANNELS } from "@/lib/notifications";
 
 interface ToggleRowProps {
   label: string;
   description: string;
   value: boolean;
   onToggle: (val: boolean) => void;
+  disabled?: boolean;
 }
 
-function ToggleRow({ label, description, value, onToggle }: ToggleRowProps) {
+function ToggleRow({ label, description, value, onToggle, disabled }: ToggleRowProps) {
   const colors = useColors();
   return (
-    <View style={[styles.toggleRow, { borderColor: colors.border }]}>
+    <View style={[styles.toggleRow, { borderColor: colors.border, opacity: disabled ? 0.5 : 1 }]}>
       <View style={styles.toggleInfo}>
         <Text style={[styles.toggleLabel, { color: colors.foreground }]}>{label}</Text>
         <Text style={[styles.toggleDesc, { color: colors.muted }]}>{description}</Text>
@@ -23,6 +27,7 @@ function ToggleRow({ label, description, value, onToggle }: ToggleRowProps) {
       <Switch
         value={value}
         onValueChange={onToggle}
+        disabled={disabled}
         trackColor={{ false: colors.border, true: colors.primary + "60" }}
         thumbColor={value ? colors.primary : colors.muted}
       />
@@ -34,9 +39,38 @@ export default function NotificationsScreen() {
   const colors = useColors();
   const router = useRouter();
   const { notifications, updateNotifications } = useCustomer();
+  const { permissionGranted, pushToken, requestPermission, unreadCount, clearAll } = useNotificationContext();
+  const [testSending, setTestSending] = useState(false);
 
   const toggle = (key: keyof NotificationPreferences) => {
     updateNotifications({ [key]: !notifications[key] });
+  };
+
+  const handleEnablePush = async () => {
+    const result = await requestPermission();
+    if (!result.granted) {
+      Alert.alert(
+        "Permission Required",
+        "Push notifications are disabled. Please enable them in your device Settings.",
+        [{ text: "OK" }],
+      );
+    }
+  };
+
+  const handleTestNotification = async () => {
+    setTestSending(true);
+    try {
+      await sendLocalNotification({
+        title: "Test Notification",
+        body: "Push notifications are working! You'll receive order updates, delivery alerts, and more.",
+        data: { type: "test", url: "/account/notifications" },
+        channelId: NOTIFICATION_CHANNELS.ORDERS,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to send test notification.");
+    } finally {
+      setTestSending(false);
+    }
   };
 
   return (
@@ -50,6 +84,79 @@ export default function NotificationsScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {/* Permission Status */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.muted }]}>System Status</Text>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statusRow, { borderColor: colors.border }]}>
+              <View style={styles.statusInfo}>
+                <View style={styles.statusHeader}>
+                  <View style={[styles.statusDot, { backgroundColor: permissionGranted ? colors.success : colors.error }]} />
+                  <Text style={[styles.toggleLabel, { color: colors.foreground }]}>
+                    Push Notifications
+                  </Text>
+                </View>
+                <Text style={[styles.toggleDesc, { color: colors.muted }]}>
+                  {permissionGranted
+                    ? "Enabled — you'll receive alerts on this device"
+                    : "Disabled — tap to enable push notifications"}
+                </Text>
+              </View>
+              {!permissionGranted && (
+                <TouchableOpacity
+                  onPress={handleEnablePush}
+                  activeOpacity={0.7}
+                  style={[styles.enableBtn, { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.enableBtnText, { color: "#fff" }]}>Enable</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {permissionGranted && pushToken && (
+              <View style={[styles.tokenRow, { borderColor: colors.border }]}>
+                <Text style={[styles.toggleDesc, { color: colors.muted }]}>
+                  Push Token: {pushToken.slice(0, 24)}...
+                </Text>
+              </View>
+            )}
+
+            {unreadCount > 0 && (
+              <View style={[styles.statusRow, { borderColor: colors.border }]}>
+                <View style={styles.statusInfo}>
+                  <Text style={[styles.toggleLabel, { color: colors.foreground }]}>
+                    {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={clearAll}
+                  activeOpacity={0.7}
+                  style={[styles.clearBtn, { borderColor: colors.primary }]}
+                >
+                  <Text style={[styles.clearBtnText, { color: colors.primary }]}>Clear All</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Test Notification */}
+        {permissionGranted && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              onPress={handleTestNotification}
+              disabled={testSending}
+              activeOpacity={0.7}
+              style={[styles.testBtn, { backgroundColor: colors.primary, opacity: testSending ? 0.6 : 1 }]}
+            >
+              <IconSymbol name="bell.fill" size={18} color="#fff" />
+              <Text style={styles.testBtnText}>
+                {testSending ? "Sending..." : "Send Test Notification"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Channels */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.muted }]}>Channels</Text>
@@ -118,11 +225,33 @@ export default function NotificationsScreen() {
           </View>
         </View>
 
+        {/* Notification Channels Info (Android) */}
+        {Platform.OS === "android" && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.muted }]}>Android Channels</Text>
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {[
+                { name: "Order Updates", desc: "High priority — status changes" },
+                { name: "Delivery Alerts", desc: "High priority — driver en route" },
+                { name: "Promotions & Deals", desc: "Default priority — sales & offers" },
+                { name: "Store Partner Alerts", desc: "Max priority — new orders" },
+                { name: "Driver Alerts", desc: "Max priority — delivery jobs" },
+                { name: "Admin Alerts", desc: "High priority — platform alerts" },
+              ].map((ch, i) => (
+                <View key={i} style={[styles.channelRow, { borderColor: colors.border }]}>
+                  <Text style={[styles.toggleLabel, { color: colors.foreground }]}>{ch.name}</Text>
+                  <Text style={[styles.toggleDesc, { color: colors.muted }]}>{ch.desc}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Info */}
         <View style={[styles.infoBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <IconSymbol name="info.circle.fill" size={18} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.muted }]}>
-            You can change these settings at any time. Critical order and safety notifications cannot be disabled.
+            Critical order and safety notifications cannot be disabled. Push notifications are delivered via Expo Push Service and work on both iOS and Android devices.
           </Text>
         </View>
       </ScrollView>
@@ -141,6 +270,18 @@ const styles = StyleSheet.create({
   toggleInfo: { flex: 1, marginRight: 12 },
   toggleLabel: { fontSize: 15, fontWeight: "600" },
   toggleDesc: { fontSize: 12, marginTop: 2 },
+  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 0.5 },
+  statusInfo: { flex: 1, marginRight: 12 },
+  statusHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  tokenRow: { paddingHorizontal: 14, paddingVertical: 8, borderBottomWidth: 0.5 },
+  enableBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  enableBtnText: { fontSize: 14, fontWeight: "600" },
+  clearBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  clearBtnText: { fontSize: 13, fontWeight: "600" },
+  testBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, borderRadius: 12 },
+  testBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+  channelRow: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 0.5 },
   infoBox: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginHorizontal: 16, padding: 14, borderRadius: 12, borderWidth: 1 },
   infoText: { fontSize: 13, flex: 1, lineHeight: 18 },
 });

@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart-store";
 import { useOrders } from "@/lib/orders-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { formatPrice } from "@/lib/data";
+import { sendLocalNotification, NOTIFICATION_CHANNELS } from "@/lib/notifications";
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -44,6 +45,16 @@ export default function CheckoutScreen() {
     });
 
     clearCart();
+
+    // Send push notification for order confirmation
+    sendLocalNotification({
+      title: "Order Confirmed! 🎉",
+      body: deliveryMode === "express"
+        ? `Order ${order.id.slice(0, 8)} placed. Estimated delivery in under 60 minutes.`
+        : `Order ${order.id.slice(0, 8)} placed. Tracking: ${order.trackingNumber}`,
+      data: { type: "order_confirmed", orderId: order.id, url: `/order/${order.id}` },
+      channelId: NOTIFICATION_CHANNELS.ORDERS,
+    });
 
     Alert.alert(
       "Order Placed!",
