@@ -6,7 +6,13 @@ import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useCustomer, type NotificationPreferences } from "@/lib/customer-store";
 import { useNotificationContext } from "@/lib/notification-provider";
-import { sendLocalNotification, NOTIFICATION_CHANNELS } from "@/lib/notifications";
+// notifications.ts uses expo-notifications which is native-only
+const sendLocalNotification = Platform.OS !== "web"
+  ? require("@/lib/notifications").sendLocalNotification
+  : async () => { throw new Error("Not available on web"); };
+const NOTIFICATION_CHANNELS = Platform.OS !== "web"
+  ? require("@/lib/notifications").NOTIFICATION_CHANNELS
+  : { ORDERS: "orders", DELIVERY: "delivery", PROMOTIONS: "promotions", STORE_ALERTS: "store_alerts", DRIVER_ALERTS: "driver_alerts", ADMIN_ALERTS: "admin_alerts" };
 
 interface ToggleRowProps {
   label: string;

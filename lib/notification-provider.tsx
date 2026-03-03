@@ -1,25 +1,20 @@
 /**
  * NotificationProvider — App-level provider that initializes the notification system
  * and provides notification state/actions to all screens.
+ *
+ * Safely no-ops on web where Expo Notifications APIs are limited.
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
-import { AppState, type AppStateStatus } from "react-native";
-import * as Notifications from "expo-notifications";
-import {
-  configureNotificationHandler,
-  setupAndroidChannels,
-  setupNotificationCategories,
-  requestNotificationPermissions,
-  getNotificationPermissionStatus,
-  getPushToken,
-  clearBadge,
-  setBadgeCount,
-  dismissAllNotifications,
-  type PermissionStatus,
-} from "@/lib/notifications";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 
-// ─── Context ───
+// ─── Types ───
+
+export interface PermissionStatusResult {
+  granted: boolean;
+  canAskAgain: boolean;
+  status: string;
+}
 
 interface NotificationContextValue {
   /** Whether notification permissions are granted */
@@ -31,7 +26,7 @@ interface NotificationContextValue {
   /** Number of unread notifications */
   unreadCount: number;
   /** Request notification permission */
-  requestPermission: () => Promise<PermissionStatus>;
+  requestPermission: () => Promise<PermissionStatusResult>;
   /** Clear badge and unread count */
   clearAll: () => Promise<void>;
   /** Increment unread count */
@@ -60,30 +55,36 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [isReady, setIsReady] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const appStateRef = useRef(AppState.currentState);
+  const isNative = Platform.OS !== "web";
 
-  // Initialize on mount
+  // Initialize on mount — native only
   useEffect(() => {
+    if (!isNative) {
+      setIsReady(true);
+      return;
+    }
+
     let mounted = true;
 
     async function init() {
       try {
-        // Configure foreground handler (must be called outside component in production,
-        // but safe to call here for initialization)
+        const {
+          configureNotificationHandler,
+          setupAndroidChannels,
+          setupNotificationCategories,
+          getNotificationPermissionStatus,
+          getPushToken,
+        } = await import("@/lib/notifications");
+
         configureNotificationHandler();
-
-        // Set up Android channels
         await setupAndroidChannels();
-
-        // Set up notification categories (interactive actions)
         await setupNotificationCategories();
 
-        // Check existing permission (don't prompt on first launch)
         const permission = await getNotificationPermissionStatus();
         if (mounted) {
           setPermissionGranted(permission.granted);
         }
 
-        // Get push token if permission already granted
         if (permission.granted) {
           const token = await getPushToken();
           if (mounted) setPushToken(token);
@@ -97,48 +98,84 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     init();
     return () => { mounted = false; };
-  }, []);
+  }, [isNative]);
 
-  // Listen for incoming notifications → increment unread
+  // Listen for incoming notifications → increment unread (native only)
   useEffect(() => {
-    const sub = Notifications.addNotificationReceivedListener(() => {
-      setUnreadCount((c) => c + 1);
-    });
-    return () => sub.remove();
-  }, []);
+    if (!isNative) return;
 
-  // Clear badge when app comes to foreground
+    let sub: { remove: () => void } | undefined;
+
+    (async () => {
+      try {
+        const Notifications = await import("expo-notifications");
+        sub = Notifications.addNotificationReceivedListener(() => {
+          setUnreadCount((c) => c + 1);
+        });
+      } catch (error) {
+        console.warn("[NotificationProvider] Listener error:", error);
+      }
+    })();
+
+    return () => sub?.remove();
+  }, [isNative]);
+
+  // Clear badge when app comes to foreground (native only)
   useEffect(() => {
-    const sub = AppState.addEventListener("change", (nextState: AppStateStatus) => {
+    if (!isNative) return;
+
+    const sub = AppState.addEventListener("change", async (nextState: AppStateStatus) => {
       if (appStateRef.current.match(/inactive|background/) && nextState === "active") {
-        // App came to foreground — clear badge
-        clearBadge();
+        try {
+          const { clearBadge } = await import("@/lib/notifications");
+          clearBadge();
+        } catch {}
       }
       appStateRef.current = nextState;
     });
     return () => sub.remove();
-  }, []);
+  }, [isNative]);
 
-  const requestPermission = useCallback(async () => {
-    const result = await requestNotificationPermissions();
-    setPermissionGranted(result.granted);
-    if (result.granted) {
-      const token = await getPushToken();
-      setPushToken(token);
+  const requestPermission = useCallback(async (): Promise<PermissionStatusResult> => {
+    if (!isNative) {
+      return { granted: false, canAskAgain: false, status: "unavailable" };
     }
-    return result;
-  }, []);
+    try {
+      const { requestNotificationPermissions, getPushToken } = await import("@/lib/notifications");
+      const result = await requestNotificationPermissions();
+      setPermissionGranted(result.granted);
+      if (result.granted) {
+        const token = await getPushToken();
+        setPushToken(token);
+      }
+      return result;
+    } catch (error) {
+      console.warn("[NotificationProvider] Permission error:", error);
+      return { granted: false, canAskAgain: true, status: "error" };
+    }
+  }, [isNative]);
 
   const clearAll = useCallback(async () => {
     setUnreadCount(0);
-    await clearBadge();
-    await dismissAllNotifications();
-  }, []);
+    if (!isNative) return;
+    try {
+      const { clearBadge, dismissAllNotifications } = await import("@/lib/notifications");
+      await clearBadge();
+      await dismissAllNotifications();
+    } catch {}
+  }, [isNative]);
 
   const incrementUnread = useCallback(() => {
-    setUnreadCount((c) => c + 1);
-    setBadgeCount(unreadCount + 1);
-  }, [unreadCount]);
+    setUnreadCount((c) => {
+      const next = c + 1;
+      if (isNative) {
+        import("@/lib/notifications").then(({ setBadgeCount }) => {
+          setBadgeCount(next);
+        }).catch(() => {});
+      }
+      return next;
+    });
+  }, [isNative]);
 
   return (
     <NotificationContext.Provider

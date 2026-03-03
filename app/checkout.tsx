@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
@@ -7,7 +7,13 @@ import { useCart } from "@/lib/cart-store";
 import { useOrders } from "@/lib/orders-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { formatPrice } from "@/lib/data";
-import { sendLocalNotification, NOTIFICATION_CHANNELS } from "@/lib/notifications";
+// Notifications are native-only; conditionally require to avoid web bundling issues
+const sendLocalNotification = Platform.OS !== "web"
+  ? require("@/lib/notifications").sendLocalNotification
+  : async () => {};
+const NOTIFICATION_CHANNELS = Platform.OS !== "web"
+  ? require("@/lib/notifications").NOTIFICATION_CHANNELS
+  : { ORDERS: "orders" };
 
 export default function CheckoutScreen() {
   const router = useRouter();
