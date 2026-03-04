@@ -18,6 +18,7 @@ import { useFavorites } from "@/lib/favorites-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useStore } from "@/lib/store-context";
 import { useMemo } from "react";
+import { ProductRowSkeleton } from "@/components/product-card-skeleton";
 
 function DeliveryToggle() {
   const { deliveryMode, setDeliveryMode } = useCart();
@@ -125,9 +126,13 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-function HorizontalProductRow({ title, products, showSeeAll }: { title: string; products: Product[]; showSeeAll?: boolean }) {
+function HorizontalProductRow({ title, products, showSeeAll, isLoading }: { title: string; products: Product[]; showSeeAll?: boolean; isLoading?: boolean }) {
   const colors = useColors();
   const router = useRouter();
+
+  if (isLoading) {
+    return <ProductRowSkeleton />;
+  }
 
   if (products.length === 0) return null;
 
@@ -160,10 +165,10 @@ export default function HomeScreen() {
   const { deliveryMode } = useCart();
 
   const { availableStores, selectedStore, selectStore } = useStore();
-  const { products: featuredApi } = useFeaturedProducts();
-  const { products: expressApi } = useExpressProducts();
-  const { products: premiumApi } = usePremiumProducts();
-  const { products: allProducts } = useProducts();
+  const { products: featuredApi, isLoading: featuredLoading } = useFeaturedProducts();
+  const { products: expressApi, isLoading: expressLoading } = useExpressProducts();
+  const { products: premiumApi, isLoading: premiumLoading } = usePremiumProducts();
+  const { products: allProducts, isLoading: allLoading } = useProducts();
 
   const featured = featuredApi;
   const express = expressApi.slice(0, 8);
@@ -280,20 +285,20 @@ export default function HomeScreen() {
         )}
 
         {/* Featured Products */}
-        <HorizontalProductRow title="Featured Picks" products={featured} showSeeAll />
+        <HorizontalProductRow title="Featured Picks" products={featured} showSeeAll isLoading={featuredLoading} />
 
         {/* Express Delivery */}
         {deliveryMode === "express" && (
-          <HorizontalProductRow title="Express Delivery" products={express} showSeeAll />
+          <HorizontalProductRow title="Express Delivery" products={express} showSeeAll isLoading={expressLoading} />
         )}
 
         {/* Premium Shipped */}
         {deliveryMode === "shipping" && (
-          <HorizontalProductRow title="Premium Shipped" products={premium} showSeeAll />
+          <HorizontalProductRow title="Premium Shipped" products={premium} showSeeAll isLoading={premiumLoading} />
         )}
 
         {/* Under $30 */}
-        <HorizontalProductRow title="Under $30" products={deals} showSeeAll />
+        <HorizontalProductRow title="Under $30" products={deals} showSeeAll isLoading={allLoading} />
 
         <View style={{ height: 32 }} />
       </ScrollView>
