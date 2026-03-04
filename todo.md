@@ -152,3 +152,5 @@
 - [x] Handle all delivery status events (pickup, dropoff, cancelled, returned, etc.)
 - [x] Propagate webhook events to clients via WebSocket for real-time order updates
 - [x] Write tests for webhook event handling
+- [x] Fix publish error: "no expo project found" — ensure app.json exists for the build system
+- [ ] Create reusable skill for Uber Direct API integration using skill-creator
