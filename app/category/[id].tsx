@@ -15,6 +15,7 @@ import {
   Category,
 } from "@/lib/data";
 import { useProductsByCategory, useCategories } from "@/hooks/use-api";
+import { CategoryListSkeleton } from "@/components/category-loading-skeleton";
 
 type SortOption = "popular" | "price-low" | "price-high" | "rating";
 
@@ -73,7 +74,7 @@ export default function CategoryScreen() {
   const [sort, setSort] = useState<SortOption>("popular");
 
   const { categories } = useCategories();
-  const { products: catProducts } = useProductsByCategory(id as string);
+  const { products: catProducts, isLoading: catLoading } = useProductsByCategory(id as string);
   const category = categories.find((c) => c.id === id);
   const products = useMemo(() => {
     const items = catProducts;
@@ -112,51 +113,57 @@ export default function CategoryScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Sort Bar */}
-      <View style={styles.sortBar}>
-        <FlatList
-          data={sortOptions}
-          keyExtractor={(item) => item.key}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setSort(item.key)}
-              style={[
-                styles.sortChip,
-                {
-                  backgroundColor: sort === item.key ? colors.primary : colors.surface,
-                  borderColor: sort === item.key ? colors.primary : colors.border,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.sortChipText,
-                  { color: sort === item.key ? "#fff" : colors.foreground },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Product List */}
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ProductListItem product={item} />}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20, gap: 10 }}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, { color: colors.muted }]}>No products in this category yet</Text>
+      {catLoading ? (
+        <CategoryListSkeleton />
+      ) : (
+        <>
+          {/* Sort Bar */}
+          <View style={styles.sortBar}>
+            <FlatList
+              data={sortOptions}
+              keyExtractor={(item) => item.key}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => setSort(item.key)}
+                  style={[
+                    styles.sortChip,
+                    {
+                      backgroundColor: sort === item.key ? colors.primary : colors.surface,
+                      borderColor: sort === item.key ? colors.primary : colors.border,
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.sortChipText,
+                      { color: sort === item.key ? "#fff" : colors.foreground },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
           </View>
-        }
-      />
+
+          {/* Product List */}
+          <FlatList
+            data={products}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <ProductListItem product={item} />}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20, gap: 10 }}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={[styles.emptyText, { color: colors.muted }]}>No products in this category yet</Text>
+              </View>
+            }
+          />
+        </>
+      )}
     </ScreenContainer>
   );
 }
