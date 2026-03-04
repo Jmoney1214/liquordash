@@ -148,3 +148,7 @@
 - [x] Integrate Uber Direct delivery quotes into checkout flow
 - [x] Add Uber courier info card to order detail screen
 - [x] Write tests for Uber Direct integration
+- [x] Build Uber Direct webhook endpoint with signature verification
+- [x] Handle all delivery status events (pickup, dropoff, cancelled, returned, etc.)
+- [x] Propagate webhook events to clients via WebSocket for real-time order updates
+- [x] Write tests for webhook event handling

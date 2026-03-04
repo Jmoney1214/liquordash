@@ -57,6 +57,10 @@ export const WS_EVENTS = {
   ADMIN_NEW_DRIVER_APPLICATION: "admin_new_driver_application",
   ADMIN_ALERT: "admin_alert",
 
+  // Server → Client: Uber Direct events
+  UBER_DELIVERY_UPDATE: "uber_delivery_update",
+  UBER_COURIER_LOCATION: "uber_courier_location",
+
   // Server → Client: System
   CONNECTED: "connected",
   ERROR: "error",

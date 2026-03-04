@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { setupWebSocket, getConnectionCount, getActiveRooms } from "../websocket";
+import { registerUberWebhookRoutes } from "../uber-webhook";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -52,6 +53,10 @@ async function startServer() {
     next();
   });
 
+  // Register Uber webhook BEFORE global JSON parser so we can capture raw body
+  // for HMAC signature verification
+  registerUberWebhookRoutes(app);
+
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
@@ -91,6 +96,7 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`[api] server listening on port ${port}`);
     console.log(`[api] WebSocket available at ws://localhost:${port}/ws`);
+    console.log(`[api] Uber webhook endpoint at http://localhost:${port}/api/webhooks/uber`);
   });
 }
 
