@@ -154,3 +154,4 @@
 - [x] Write tests for webhook event handling
 - [x] Fix publish error: "no expo project found" — ensure app.json exists for the build system
 - [x] Create reusable skill for Uber Direct API integration using skill-creator
+- [ ] Fix persistent publish error: "no expo project found" — deep investigation of build system project detection
