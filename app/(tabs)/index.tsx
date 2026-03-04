@@ -19,6 +19,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useStore } from "@/lib/store-context";
 import { useMemo } from "react";
 import { ProductRowSkeleton } from "@/components/product-card-skeleton";
+import { FadeIn } from "@/components/fade-in";
 
 function DeliveryToggle() {
   const { deliveryMode, setDeliveryMode } = useCart();
@@ -137,25 +138,27 @@ function HorizontalProductRow({ title, products, showSeeAll, isLoading }: { titl
   if (products.length === 0) return null;
 
   return (
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>{title}</Text>
-        {showSeeAll && (
-          <TouchableOpacity onPress={() => router.push("/browse")} activeOpacity={0.6}>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-          </TouchableOpacity>
-        )}
+    <FadeIn style={{ flex: 0 }}>
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>{title}</Text>
+          {showSeeAll && (
+            <TouchableOpacity onPress={() => router.push("/browse")} activeOpacity={0.6}>
+              <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+          renderItem={({ item }) => <ProductCard product={item} />}
+        />
       </View>
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-        renderItem={({ item }) => <ProductCard product={item} />}
-      />
-    </View>
+    </FadeIn>
   );
 }
 

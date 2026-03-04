@@ -141,3 +141,4 @@
 - [x] Add loading animation to Browse screen while search results are being fetched
 - [x] Add skeleton loading to Home screen horizontal product rows (Featured Picks, Express, Premium, etc.)
 - [x] Add skeleton loading to Category detail screen for full consistency across the app
+- [x] Add 200ms fade-in transition when skeletons resolve to real content (Browse, Home, Category screens)

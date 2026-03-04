@@ -17,6 +17,7 @@ import { useCategories, useProductSearch } from "@/hooks/use-api";
 import { useFavorites } from "@/lib/favorites-store";
 import { useCart } from "@/lib/cart-store";
 import { SearchLoadingSkeleton } from "@/components/search-loading-skeleton";
+import { FadeIn } from "@/components/fade-in";
 
 function CategoryTile({ cat, onPress }: { cat: CategoryInfo; onPress: () => void }) {
   const colors = useColors();
@@ -139,25 +140,27 @@ export default function BrowseScreen() {
         showLoading ? (
           <SearchLoadingSkeleton />
         ) : (
-          <FlatList
-            key="search-results"
-            data={results}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <SearchResultItem product={item} />}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-            ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.border }} />}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <IconSymbol name="magnifyingglass" size={40} color={colors.muted + "60"} />
-                <Text style={[styles.emptyText, { color: colors.muted, marginTop: 12 }]}>
-                  No results for "{query}"
-                </Text>
-                <Text style={[styles.emptyHint, { color: colors.muted }]}>
-                  Try a different search term
-                </Text>
-              </View>
-            }
-          />
+          <FadeIn>
+            <FlatList
+              key="search-results"
+              data={results}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <SearchResultItem product={item} />}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+              ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.border }} />}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <IconSymbol name="magnifyingglass" size={40} color={colors.muted + "60"} />
+                  <Text style={[styles.emptyText, { color: colors.muted, marginTop: 12 }]}>
+                    No results for "{query}"
+                  </Text>
+                  <Text style={[styles.emptyHint, { color: colors.muted }]}>
+                    Try a different search term
+                  </Text>
+                </View>
+              }
+            />
+          </FadeIn>
         )
       ) : (
         <FlatList

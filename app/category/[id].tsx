@@ -16,6 +16,7 @@ import {
 } from "@/lib/data";
 import { useProductsByCategory, useCategories } from "@/hooks/use-api";
 import { CategoryListSkeleton } from "@/components/category-loading-skeleton";
+import { FadeIn } from "@/components/fade-in";
 
 type SortOption = "popular" | "price-low" | "price-high" | "rating";
 
@@ -116,7 +117,7 @@ export default function CategoryScreen() {
       {catLoading ? (
         <CategoryListSkeleton />
       ) : (
-        <>
+        <FadeIn>
           {/* Sort Bar */}
           <View style={styles.sortBar}>
             <FlatList
@@ -162,7 +163,7 @@ export default function CategoryScreen() {
               </View>
             }
           />
-        </>
+        </FadeIn>
       )}
     </ScreenContainer>
   );
