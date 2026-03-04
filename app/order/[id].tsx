@@ -178,6 +178,52 @@ export default function OrderDetailScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Uber Courier Info */}
+        {order.uberDeliveryId && (
+          <View style={[styles.uberCourierCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.uberCourierHeader}>
+              <IconSymbol name="car.fill" size={18} color={colors.primary} />
+              <Text style={[styles.uberCourierTitle, { color: colors.foreground }]}>Uber Direct Delivery</Text>
+              <View style={[styles.uberStatusBadge, { backgroundColor: colors.primary + "15" }]}>
+                <Text style={[styles.uberStatusText, { color: colors.primary }]}>
+                  {order.uberStatus || "pending"}
+                </Text>
+              </View>
+            </View>
+            {order.uberCourier?.name && (
+              <View style={styles.uberCourierInfo}>
+                <View style={[styles.uberCourierAvatar, { backgroundColor: colors.primary + "20" }]}>
+                  <IconSymbol name="person.fill" size={20} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.uberCourierName, { color: colors.foreground }]}>
+                    {order.uberCourier.name}
+                  </Text>
+                  {order.uberCourier.vehicleType && (
+                    <Text style={[styles.uberCourierVehicle, { color: colors.muted }]}>
+                      {order.uberCourier.vehicleType}
+                    </Text>
+                  )}
+                </View>
+                {order.uberCourier.phone && (
+                  <TouchableOpacity style={[styles.callBtn, { backgroundColor: colors.primary }]} activeOpacity={0.7}>
+                    <IconSymbol name="phone.fill" size={16} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+            {order.uberTrackingUrl && (
+              <TouchableOpacity
+                style={[styles.uberTrackBtn, { borderColor: colors.primary }]}
+                activeOpacity={0.7}
+              >
+                <IconSymbol name="location.north.line.fill" size={14} color={colors.primary} />
+                <Text style={[styles.uberTrackBtnText, { color: colors.primary }]}>Open Uber Tracking</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Estimated Delivery */}
         <View style={[styles.estimateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <IconSymbol name="clock.fill" size={20} color={colors.primary} />
@@ -533,5 +579,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     flex: 1,
+  },
+  uberCourierCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+  },
+  uberCourierHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  uberCourierTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    flex: 1,
+  },
+  uberStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  uberStatusText: {
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "capitalize",
+  },
+  uberCourierInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  uberCourierAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  uberCourierName: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  uberCourierVehicle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  callBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  uberTrackBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1.5,
+  },
+  uberTrackBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

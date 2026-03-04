@@ -1,12 +1,13 @@
-import { Text, View, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { useCart } from "@/lib/cart-store";
 import { useOrders } from "@/lib/orders-store";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { formatPrice } from "@/lib/data";
+import { trpc } from "@/lib/trpc";
 // Notifications are native-only; conditionally require to avoid web bundling issues
 const sendLocalNotification = Platform.OS !== "web"
   ? require("@/lib/notifications").sendLocalNotification
@@ -15,58 +16,187 @@ const NOTIFICATION_CHANNELS = Platform.OS !== "web"
   ? require("@/lib/notifications").NOTIFICATION_CHANNELS
   : { ORDERS: "orders" };
 
+// Default store pickup address (would come from store settings in production)
+const STORE_PICKUP = {
+  address: "123 Liquor Store Ave, New York, NY 10001",
+  name: "LiquorDash Store",
+  phone: "+12125551234",
+};
+
+interface UberQuote {
+  quoteId: string;
+  fee: number; // cents
+  currency: string;
+  dropoffEta: string;
+  duration: number; // minutes
+  pickupDuration: number;
+  expires: string;
+}
+
 export default function CheckoutScreen() {
   const router = useRouter();
   const colors = useColors();
   const { items, deliveryMode, setDeliveryMode, subtotal, deliveryFee, serviceFee, tax, total, clearCart } = useCart();
-  const { placeOrder } = useOrders();
+  const { placeOrder, updateUberDelivery } = useOrders();
 
   const [address, setAddress] = useState("123 Main Street, Apt 4B");
   const [city, setCity] = useState("New York");
   const [state, setState] = useState("NY");
   const [zip, setZip] = useState("10001");
+  const [phone, setPhone] = useState("+12125559876");
+  const [recipientName, setRecipientName] = useState("");
   const [cardLast4] = useState("4242");
   const [tipPercent, setTipPercent] = useState(15);
   const [specialInstructions, setSpecialInstructions] = useState("");
 
-  const tipAmount = deliveryMode === "express" ? Math.round(subtotal * (tipPercent / 100) * 100) / 100 : 0;
-  const finalTotal = Math.round((total + tipAmount) * 100) / 100;
+  // Uber Direct quote state
+  const [uberQuote, setUberQuote] = useState<UberQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
-  const handlePlaceOrder = () => {
+  const quoteMutation = trpc.delivery.quote.useMutation();
+  const createDeliveryMutation = trpc.delivery.create.useMutation();
+
+  const tipAmount = deliveryMode === "express" ? Math.round(subtotal * (tipPercent / 100) * 100) / 100 : 0;
+
+  // Use Uber fee when available for express, otherwise fall back to static fee
+  const effectiveDeliveryFee = deliveryMode === "express" && uberQuote
+    ? uberQuote.fee / 100 // convert cents to dollars
+    : deliveryFee;
+
+  const adjustedTotal = Math.round((subtotal + effectiveDeliveryFee + serviceFee + tax + tipAmount) * 100) / 100;
+
+  // Fetch Uber delivery quote when express is selected and address is filled
+  const fetchUberQuote = useCallback(async () => {
+    if (deliveryMode !== "express") return;
+    const fullAddress = `${address}, ${city}, ${state} ${zip}`.trim();
+    if (!address.trim() || !city.trim() || !state.trim() || !zip.trim()) return;
+
+    setQuoteLoading(true);
+    setQuoteError(null);
+    try {
+      const result = await quoteMutation.mutateAsync({
+        pickupAddress: STORE_PICKUP.address,
+        pickupName: STORE_PICKUP.name,
+        pickupPhone: STORE_PICKUP.phone,
+        dropoffAddress: fullAddress,
+        dropoffName: recipientName || "Customer",
+        dropoffPhone: phone,
+        items: items.map((item) => ({
+          name: `${item.product.brand} ${item.product.name}`,
+          quantity: item.quantity,
+          price: Math.round(item.product.price * 100), // cents
+          size: "medium" as const,
+        })),
+      });
+      setUberQuote(result);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to get delivery quote";
+      setQuoteError(msg);
+      setUberQuote(null);
+    } finally {
+      setQuoteLoading(false);
+    }
+  }, [deliveryMode, address, city, state, zip, phone, recipientName, items]);
+
+  // Auto-fetch quote when express mode is selected
+  useEffect(() => {
+    if (deliveryMode === "express" && address.trim() && city.trim() && state.trim() && zip.trim()) {
+      const timer = setTimeout(fetchUberQuote, 800); // debounce
+      return () => clearTimeout(timer);
+    } else {
+      setUberQuote(null);
+      setQuoteError(null);
+    }
+  }, [deliveryMode, address, city, state, zip]);
+
+  const handlePlaceOrder = async () => {
     if (!address.trim() || !city.trim() || !state.trim() || !zip.trim()) {
       Alert.alert("Missing Address", "Please fill in all address fields.");
       return;
     }
 
+    setPlacingOrder(true);
     const fullAddress = `${address}, ${city}, ${state} ${zip}`;
-    const order = placeOrder({
-      items,
-      deliveryMode,
-      subtotal,
-      deliveryFee,
-      serviceFee,
-      tax: tax + tipAmount,
-      total: finalTotal,
-      deliveryAddress: fullAddress,
-    });
 
-    clearCart();
+    try {
+      const order = placeOrder({
+        items,
+        deliveryMode,
+        subtotal,
+        deliveryFee: effectiveDeliveryFee,
+        serviceFee,
+        tax: tax + tipAmount,
+        total: adjustedTotal,
+        deliveryAddress: fullAddress,
+        uberQuoteId: uberQuote?.quoteId,
+        uberFee: uberQuote?.fee,
+      });
 
-    // Send push notification for order confirmation
-    sendLocalNotification({
-      title: "Order Confirmed! 🎉",
-      body: deliveryMode === "express"
-        ? `Order ${order.id.slice(0, 8)} placed. Estimated delivery in under 60 minutes.`
-        : `Order ${order.id.slice(0, 8)} placed. Tracking: ${order.trackingNumber}`,
-      data: { type: "order_confirmed", orderId: order.id, url: `/order/${order.id}` },
-      channelId: NOTIFICATION_CHANNELS.ORDERS,
-    });
+      // If express delivery with Uber quote, dispatch an Uber courier
+      if (deliveryMode === "express" && uberQuote) {
+        try {
+          const delivery = await createDeliveryMutation.mutateAsync({
+            pickupAddress: STORE_PICKUP.address,
+            pickupName: STORE_PICKUP.name,
+            pickupPhone: STORE_PICKUP.phone,
+            pickupNotes: "Liquor order — check ID on pickup",
+            dropoffAddress: fullAddress,
+            dropoffName: recipientName || "Customer",
+            dropoffPhone: phone,
+            dropoffNotes: specialInstructions || undefined,
+            items: items.map((item) => ({
+              name: `${item.product.brand} ${item.product.name}`,
+              quantity: item.quantity,
+              price: Math.round(item.product.price * 100),
+              size: "medium" as const,
+            })),
+            manifestDescription: `LiquorDash Order ${order.id}`,
+            manifestTotalValue: Math.round(subtotal * 100),
+            quoteId: uberQuote.quoteId,
+            externalId: order.id,
+          });
 
-    Alert.alert(
-      "Order Placed!",
-      `Your order ${order.id} has been confirmed.${deliveryMode === "express" ? " Estimated delivery in under 60 minutes." : ` Tracking number: ${order.trackingNumber}`}`,
-      [{ text: "View Order", onPress: () => router.replace(`/order/${order.id}` as any) }]
-    );
+          // Update the order with Uber delivery details
+          updateUberDelivery(order.id, {
+            uberDeliveryId: delivery.deliveryId,
+            uberTrackingUrl: delivery.trackingUrl,
+            uberStatus: delivery.status,
+            uberCourier: delivery.courier,
+            uberPickupEta: delivery.pickupEta,
+            uberDropoffEta: delivery.dropoffEta,
+          });
+        } catch (uberErr) {
+          // Order is placed locally even if Uber dispatch fails
+          console.warn("Uber dispatch failed:", uberErr);
+        }
+      }
+
+      clearCart();
+
+      // Send push notification
+      sendLocalNotification({
+        title: "Order Confirmed!",
+        body: deliveryMode === "express"
+          ? `Order ${order.id.slice(0, 8)} placed. ${uberQuote ? `Uber courier arriving in ~${uberQuote.duration} min.` : "Estimated delivery in under 60 minutes."}`
+          : `Order ${order.id.slice(0, 8)} placed. Tracking: ${order.trackingNumber}`,
+        data: { type: "order_confirmed", orderId: order.id, url: `/order/${order.id}` },
+        channelId: NOTIFICATION_CHANNELS.ORDERS,
+      });
+
+      Alert.alert(
+        "Order Placed!",
+        deliveryMode === "express" && uberQuote
+          ? `Your order ${order.id} has been confirmed. An Uber courier will deliver in ~${uberQuote.duration} minutes.`
+          : `Your order ${order.id} has been confirmed.${deliveryMode === "express" ? " Estimated delivery in under 60 minutes." : ` Tracking number: ${order.trackingNumber}`}`,
+        [{ text: "View Order", onPress: () => router.replace(`/order/${order.id}` as any) }]
+      );
+    } catch (err) {
+      Alert.alert("Error", "Failed to place order. Please try again.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   if (items.length === 0) {
@@ -110,13 +240,25 @@ export default function CheckoutScreen() {
               <IconSymbol name="bolt.fill" size={24} color={deliveryMode === "express" ? colors.primary : colors.muted} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.deliveryTitle, { color: deliveryMode === "express" ? colors.primary : colors.foreground }]}>
-                  Express Delivery
+                  Express via Uber
                 </Text>
-                <Text style={[styles.deliverySub, { color: colors.muted }]}>Under 60 minutes</Text>
+                <Text style={[styles.deliverySub, { color: colors.muted }]}>
+                  {uberQuote ? `~${uberQuote.duration} min` : "Under 60 minutes"}
+                </Text>
               </View>
-              <Text style={[styles.deliveryPrice, { color: deliveryMode === "express" ? colors.primary : colors.foreground }]}>
-                {subtotal >= 50 ? "FREE" : "$5.99"}
-              </Text>
+              <View style={{ alignItems: "flex-end" }}>
+                {quoteLoading ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : uberQuote ? (
+                  <Text style={[styles.deliveryPrice, { color: deliveryMode === "express" ? colors.primary : colors.foreground }]}>
+                    {formatPrice(uberQuote.fee / 100)}
+                  </Text>
+                ) : (
+                  <Text style={[styles.deliveryPrice, { color: deliveryMode === "express" ? colors.primary : colors.foreground }]}>
+                    {subtotal >= 50 ? "FREE" : "$5.99"}
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setDeliveryMode("shipping")}
@@ -143,12 +285,59 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
+        {/* Uber Quote Info Banner */}
+        {deliveryMode === "express" && uberQuote && (
+          <View style={[styles.uberBanner, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.uberBannerRow}>
+              <IconSymbol name="car.fill" size={18} color={colors.primary} />
+              <Text style={[styles.uberBannerTitle, { color: colors.foreground }]}>Uber Direct Delivery</Text>
+            </View>
+            <View style={styles.uberBannerDetails}>
+              <View style={styles.uberBannerItem}>
+                <Text style={[styles.uberBannerLabel, { color: colors.muted }]}>Pickup</Text>
+                <Text style={[styles.uberBannerValue, { color: colors.foreground }]}>~{uberQuote.pickupDuration} min</Text>
+              </View>
+              <View style={[styles.uberBannerDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.uberBannerItem}>
+                <Text style={[styles.uberBannerLabel, { color: colors.muted }]}>Total ETA</Text>
+                <Text style={[styles.uberBannerValue, { color: colors.foreground }]}>~{uberQuote.duration} min</Text>
+              </View>
+              <View style={[styles.uberBannerDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.uberBannerItem}>
+                <Text style={[styles.uberBannerLabel, { color: colors.muted }]}>Fee</Text>
+                <Text style={[styles.uberBannerValue, { color: colors.primary }]}>{formatPrice(uberQuote.fee / 100)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Uber Quote Error */}
+        {deliveryMode === "express" && quoteError && (
+          <View style={[styles.quoteErrorBanner, { backgroundColor: colors.error + "15", borderColor: colors.error + "40" }]}>
+            <IconSymbol name="exclamationmark.triangle.fill" size={16} color={colors.error} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quoteErrorText, { color: colors.error }]}>Could not get Uber quote</Text>
+              <Text style={[styles.quoteErrorSub, { color: colors.muted }]}>Using standard delivery fee instead</Text>
+            </View>
+            <TouchableOpacity onPress={fetchUberQuote} activeOpacity={0.7}>
+              <Text style={[styles.retryText, { color: colors.primary }]}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Delivery Address */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
             {deliveryMode === "express" ? "Delivery Address" : "Shipping Address"}
           </Text>
           <View style={styles.inputGroup}>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.foreground }]}
+              placeholder="Recipient Name"
+              placeholderTextColor={colors.muted}
+              value={recipientName}
+              onChangeText={setRecipientName}
+            />
             <TextInput
               style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.foreground }]}
               placeholder="Street Address"
@@ -182,6 +371,14 @@ export default function CheckoutScreen() {
                 maxLength={5}
               />
             </View>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.foreground }]}
+              placeholder="Phone Number"
+              placeholderTextColor={colors.muted}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
           </View>
         </View>
 
@@ -258,11 +455,15 @@ export default function CheckoutScreen() {
           </View>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.muted }]}>
-              {deliveryMode === "express" ? "Delivery Fee" : "Shipping Fee"}
+              {deliveryMode === "express" ? (uberQuote ? "Uber Delivery Fee" : "Delivery Fee") : "Shipping Fee"}
             </Text>
-            <Text style={[styles.summaryValue, { color: deliveryFee === 0 ? colors.success : colors.foreground }]}>
-              {deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}
-            </Text>
+            {quoteLoading ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={[styles.summaryValue, { color: effectiveDeliveryFee === 0 ? colors.success : colors.foreground }]}>
+                {effectiveDeliveryFee === 0 ? "FREE" : formatPrice(effectiveDeliveryFee)}
+              </Text>
+            )}
           </View>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.muted }]}>Service Fee</Text>
@@ -285,15 +486,26 @@ export default function CheckoutScreen() {
       <View style={[styles.bottomBar, { backgroundColor: colors.background, borderColor: colors.border }]}>
         <View style={styles.totalRow}>
           <Text style={[styles.totalLabel, { color: colors.muted }]}>Total</Text>
-          <Text style={[styles.totalValue, { color: colors.foreground }]}>{formatPrice(finalTotal)}</Text>
+          <Text style={[styles.totalValue, { color: colors.foreground }]}>{formatPrice(adjustedTotal)}</Text>
         </View>
         <TouchableOpacity
           onPress={handlePlaceOrder}
-          style={[styles.placeOrderBtn, { backgroundColor: colors.primary }]}
+          disabled={placingOrder || quoteLoading}
+          style={[
+            styles.placeOrderBtn,
+            { backgroundColor: colors.primary },
+            (placingOrder || quoteLoading) && { opacity: 0.6 },
+          ]}
           activeOpacity={0.7}
         >
-          <IconSymbol name="checkmark.circle.fill" size={20} color="#fff" />
-          <Text style={styles.placeOrderText}>Place Order</Text>
+          {placingOrder ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <IconSymbol name="checkmark.circle.fill" size={20} color="#fff" />
+          )}
+          <Text style={styles.placeOrderText}>
+            {placingOrder ? "Placing Order..." : "Place Order"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScreenContainer>
@@ -349,6 +561,65 @@ const styles = StyleSheet.create({
   },
   deliveryPrice: {
     fontSize: 14,
+    fontWeight: "700",
+  },
+  uberBanner: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  uberBannerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+  uberBannerTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  uberBannerDetails: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  uberBannerItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  uberBannerLabel: {
+    fontSize: 11,
+    marginBottom: 2,
+  },
+  uberBannerValue: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  uberBannerDivider: {
+    width: 1,
+    height: 28,
+  },
+  quoteErrorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  quoteErrorText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  quoteErrorSub: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  retryText: {
+    fontSize: 13,
     fontWeight: "700",
   },
   inputGroup: {

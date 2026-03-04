@@ -4,6 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
 import * as db from "./db";
+import * as uberDirect from "./uber-direct";
 
 export const appRouter = router({
   system: systemRouter,
@@ -395,6 +396,170 @@ export const appRouter = router({
         await db.deletePaymentMethod(input.id);
         return { success: true };
       }),
+  }),
+
+  // ═══════════════════════════════════════════════════════════════
+  // UBER DIRECT DELIVERY
+  // ═══════════════════════════════════════════════════════════════
+  delivery: router({
+    /** Get a delivery quote with estimated fee and ETA */
+    quote: publicProcedure
+      .input(
+        z.object({
+          pickupAddress: z.string().min(1),
+          pickupName: z.string().optional(),
+          pickupPhone: z.string().optional(),
+          dropoffAddress: z.string().min(1),
+          dropoffName: z.string().optional(),
+          dropoffPhone: z.string().optional(),
+          items: z
+            .array(
+              z.object({
+                name: z.string(),
+                quantity: z.number().min(1),
+                price: z.number().optional(), // cents
+                size: z.enum(["small", "medium", "large", "xlarge"]).optional(),
+              })
+            )
+            .optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const quote = await uberDirect.getDeliveryQuote({
+          pickup_address: input.pickupAddress,
+          pickup_name: input.pickupName,
+          pickup_phone_number: input.pickupPhone,
+          dropoff_address: input.dropoffAddress,
+          dropoff_name: input.dropoffName,
+          dropoff_phone_number: input.dropoffPhone,
+          manifest_items: input.items?.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            size: item.size,
+          })),
+        });
+        return {
+          quoteId: quote.id,
+          fee: quote.fee, // cents
+          currency: quote.currency_type,
+          dropoffEta: quote.dropoff_eta,
+          duration: quote.duration, // minutes
+          pickupDuration: quote.pickup_duration,
+          expires: quote.expires,
+        };
+      }),
+
+    /** Create a delivery and dispatch an Uber courier */
+    create: protectedProcedure
+      .input(
+        z.object({
+          pickupAddress: z.string().min(1),
+          pickupName: z.string().min(1),
+          pickupPhone: z.string().min(1),
+          pickupNotes: z.string().optional(),
+          dropoffAddress: z.string().min(1),
+          dropoffName: z.string().min(1),
+          dropoffPhone: z.string().min(1),
+          dropoffNotes: z.string().optional(),
+          items: z.array(
+            z.object({
+              name: z.string(),
+              quantity: z.number().min(1),
+              price: z.number().optional(),
+              size: z.enum(["small", "medium", "large", "xlarge"]).optional(),
+            })
+          ),
+          manifestDescription: z.string().optional(),
+          manifestTotalValue: z.number().optional(), // cents
+          quoteId: z.string().optional(),
+          externalId: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const delivery = await uberDirect.createDelivery({
+          pickup_address: input.pickupAddress,
+          pickup_name: input.pickupName,
+          pickup_phone_number: input.pickupPhone,
+          pickup_notes: input.pickupNotes,
+          dropoff_address: input.dropoffAddress,
+          dropoff_name: input.dropoffName,
+          dropoff_phone_number: input.dropoffPhone,
+          dropoff_notes: input.dropoffNotes,
+          manifest_items: input.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            size: item.size,
+          })),
+          manifest_description: input.manifestDescription,
+          manifest_total_value: input.manifestTotalValue,
+          quote_id: input.quoteId,
+          external_id: input.externalId,
+        });
+        return {
+          deliveryId: delivery.id,
+          status: delivery.status,
+          fee: delivery.fee,
+          currency: delivery.currency,
+          trackingUrl: delivery.tracking_url,
+          pickupEta: delivery.pickup_eta,
+          dropoffEta: delivery.dropoff_eta,
+          courier: delivery.courier
+            ? {
+                name: delivery.courier.name,
+                phone: delivery.courier.phone_number,
+                vehicleType: delivery.courier.vehicle_type,
+                imgUrl: delivery.courier.img_href,
+                location: delivery.courier.location,
+              }
+            : null,
+        };
+      }),
+
+    /** Get the current status and details of a delivery */
+    status: publicProcedure
+      .input(z.object({ deliveryId: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const delivery = await uberDirect.getDeliveryStatus(input.deliveryId);
+        return {
+          deliveryId: delivery.id,
+          status: delivery.status,
+          complete: delivery.complete,
+          fee: delivery.fee,
+          currency: delivery.currency,
+          trackingUrl: delivery.tracking_url,
+          pickupEta: delivery.pickup_eta,
+          dropoffEta: delivery.dropoff_eta,
+          courier: delivery.courier
+            ? {
+                name: delivery.courier.name,
+                phone: delivery.courier.phone_number,
+                vehicleType: delivery.courier.vehicle_type,
+                imgUrl: delivery.courier.img_href,
+                location: delivery.courier.location,
+              }
+            : null,
+          pickup: delivery.pickup,
+          dropoff: delivery.dropoff,
+          manifestItems: delivery.manifest_items,
+          created: delivery.created,
+          updated: delivery.updated,
+        };
+      }),
+
+    /** Cancel a delivery (only before courier picks up) */
+    cancel: protectedProcedure
+      .input(z.object({ deliveryId: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const result = await uberDirect.cancelDelivery(input.deliveryId);
+        return { deliveryId: result.id, status: result.status };
+      }),
+
+    /** Validate that Uber Direct credentials are working */
+    validateCredentials: adminProcedure.query(async () => {
+      return uberDirect.validateCredentials();
+    }),
   }),
 
   // ═══════════════════════════════════════════════════════════════

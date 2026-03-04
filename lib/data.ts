@@ -62,6 +62,21 @@ export interface Order {
   estimatedDelivery: string;
   trackingNumber?: string;
   deliveryAddress: string;
+  // Uber Direct delivery fields
+  uberDeliveryId?: string;
+  uberTrackingUrl?: string;
+  uberQuoteId?: string;
+  uberFee?: number; // cents
+  uberStatus?: string;
+  uberCourier?: {
+    name?: string;
+    phone?: string;
+    vehicleType?: string;
+    imgUrl?: string;
+    location?: { lat: number; lng: number };
+  } | null;
+  uberPickupEta?: string;
+  uberDropoffEta?: string;
 }
 
 export type OrderStatus =

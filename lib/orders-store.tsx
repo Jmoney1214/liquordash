@@ -11,7 +11,8 @@ interface OrdersState {
 type OrdersAction =
   | { type: "SET_ORDERS"; orders: Order[] }
   | { type: "ADD_ORDER"; order: Order }
-  | { type: "UPDATE_STATUS"; orderId: string; status: OrderStatus };
+  | { type: "UPDATE_STATUS"; orderId: string; status: OrderStatus }
+  | { type: "UPDATE_UBER_DELIVERY"; orderId: string; uber: Partial<Pick<Order, "uberDeliveryId" | "uberTrackingUrl" | "uberQuoteId" | "uberFee" | "uberStatus" | "uberCourier" | "uberPickupEta" | "uberDropoffEta">> };
 
 function ordersReducer(state: OrdersState, action: OrdersAction): OrdersState {
   switch (action.type) {
@@ -23,6 +24,12 @@ function ordersReducer(state: OrdersState, action: OrdersAction): OrdersState {
       return {
         orders: state.orders.map((o) =>
           o.id === action.orderId ? { ...o, status: action.status } : o
+        ),
+      };
+    case "UPDATE_UBER_DELIVERY":
+      return {
+        orders: state.orders.map((o) =>
+          o.id === action.orderId ? { ...o, ...action.uber } : o
         ),
       };
     default:
@@ -43,7 +50,10 @@ interface OrdersContextValue {
     tax: number;
     total: number;
     deliveryAddress: string;
+    uberQuoteId?: string;
+    uberFee?: number;
   }) => Order;
+  updateUberDelivery: (orderId: string, uber: Partial<Pick<Order, "uberDeliveryId" | "uberTrackingUrl" | "uberQuoteId" | "uberFee" | "uberStatus" | "uberCourier" | "uberPickupEta" | "uberDropoffEta">>) => void;
   getOrder: (id: string) => Order | undefined;
 }
 
@@ -79,6 +89,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       tax: number;
       total: number;
       deliveryAddress: string;
+      uberQuoteId?: string;
+      uberFee?: number;
     }): Order => {
       const now = new Date();
       const estimatedDelivery =
@@ -100,10 +112,19 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
         estimatedDelivery,
         trackingNumber: params.deliveryMode === "shipping" ? `TRK${Date.now().toString(36).toUpperCase()}` : undefined,
         deliveryAddress: params.deliveryAddress,
+        uberQuoteId: params.uberQuoteId,
+        uberFee: params.uberFee,
       };
 
       dispatch({ type: "ADD_ORDER", order });
       return order;
+    },
+    []
+  );
+
+  const updateUberDelivery = useCallback(
+    (orderId: string, uber: Partial<Pick<Order, "uberDeliveryId" | "uberTrackingUrl" | "uberQuoteId" | "uberFee" | "uberStatus" | "uberCourier" | "uberPickupEta" | "uberDropoffEta">>) => {
+      dispatch({ type: "UPDATE_UBER_DELIVERY", orderId, uber });
     },
     []
   );
@@ -124,8 +145,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<OrdersContextValue>(
-    () => ({ orders: state.orders, activeOrders, pastOrders, placeOrder, getOrder }),
-    [state.orders, activeOrders, pastOrders, placeOrder, getOrder]
+    () => ({ orders: state.orders, activeOrders, pastOrders, placeOrder, updateUberDelivery, getOrder }),
+    [state.orders, activeOrders, pastOrders, placeOrder, updateUberDelivery, getOrder]
   );
 
   return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;
