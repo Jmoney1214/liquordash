@@ -243,6 +243,7 @@ export default function AdminDashboard() {
             <QuickAction label="Drivers" icon="car.fill" color="#1B6B3A" onPress={() => router.push("/admin/driver-management" as any)} />
             <QuickAction label="Users" icon="person.2.fill" color="#8B5CF6" onPress={() => router.push("/admin/users" as any)} />
             <QuickAction label="Analytics" icon="chart.bar.fill" color="#F59E0B" onPress={() => router.push("/admin/analytics" as any)} />
+            <QuickAction label="Lightspeed" icon="arrow.triangle.2.circlepath" color="#FF6C00" onPress={() => router.push("/admin/lightspeed" as any)} />
             <QuickAction label="Settings" icon="slider.horizontal.3" color="#6B7280" onPress={() => router.push("/admin/settings" as any)} />
           </View>
         </View>

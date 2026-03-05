@@ -154,4 +154,24 @@
 - [x] Write tests for webhook event handling
 - [x] Fix publish error: "no expo project found" — ensure app.json exists for the build system
 - [x] Create reusable skill for Uber Direct API integration using skill-creator
-- [ ] Fix persistent publish error: "no expo project found" — deep investigation of build system project detection
+- [x] Fix persistent publish error: "no expo project found" — deep investigation of build system project detection
+- [x] Configure Uber Direct webhook URL in the Uber Direct dashboard for real-time delivery updates
+- [ ] Test full Uber Direct sandbox delivery flow (auth, quote, create delivery, track status, verify webhooks)
+
+## Lightspeed Retail R-Series Integration
+
+- [x] Store Lightspeed API credentials (Client ID, Client Secret)
+- [x] Build Lightspeed OAuth authorization flow (authorization code grant + refresh token)
+- [x] Build server-side Lightspeed API service (token management, API helper)
+- [x] Implement product catalog sync (pull products from Lightspeed into LiquorDash)
+- [x] Implement inventory tracking (real-time stock levels from Lightspeed)
+- [x] Implement order management (push orders from LiquorDash to Lightspeed)
+- [x] Implement customer management (sync customer data with Lightspeed)
+- [x] Create tRPC routes for Lightspeed operations
+- [x] Build admin Lightspeed settings screen (connect account, sync status)
+- [x] Write tests for Lightspeed API integration
+- [x] Update Lightspeed credentials to new Client ID/Secret with employee:all scope
+- [x] Fix Lightspeed OAuth endpoints (cloud.lightspeedapp.com / cloud.merchantos.com)
+- [x] Fix TypeScript errors in admin/lightspeed.tsx
+- [x] Add Lightspeed Quick Action to admin dashboard
+- [x] Complete OAuth flow to get access/refresh tokens

@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
 import * as db from "./db";
 import * as uberDirect from "./uber-direct";
+import * as lightspeed from "./lightspeed";
 
 export const appRouter = router({
   system: systemRouter,
@@ -559,6 +560,483 @@ export const appRouter = router({
     /** Validate that Uber Direct credentials are working */
     validateCredentials: adminProcedure.query(async () => {
       return uberDirect.validateCredentials();
+    }),
+  }),
+
+  // ═══════════════════════════════════════════════════════════════
+  // LIGHTSPEED RETAIL INTEGRATION
+  // ═══════════════════════════════════════════════════════════════
+  lightspeed: router({
+    /** Check Lightspeed connection status */
+    status: adminProcedure.query(async () => {
+      return lightspeed.getConnectionStatus();
+    }),
+
+    /** Disconnect from Lightspeed */
+    disconnect: adminProcedure.mutation(async () => {
+      lightspeed.disconnect();
+      return { success: true };
+    }),
+
+    /** Manually set tokens (from Postman or browser OAuth flow) */
+    setTokens: adminProcedure
+      .input(
+        z.object({
+          accessToken: z.string().min(1),
+          refreshToken: z.string().min(1),
+          accountId: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await lightspeed.setManualTokens(input);
+        // Verify tokens work
+        const account = await lightspeed.getAccount();
+        return {
+          success: true,
+          accountId: account.accountID,
+          accountName: account.name,
+        };
+      }),
+
+    /** Get all shops/locations */
+    shops: adminProcedure.query(async () => {
+      const shops = await lightspeed.getShops();
+      return shops.map((s) => ({
+        shopId: s.shopID,
+        name: s.name,
+        timeZone: s.timeZone,
+        address: s.contact?.Addresses?.ContactAddress?.[0] ?? null,
+        phone: s.contact?.Phones?.ContactPhone?.[0]?.number ?? null,
+      }));
+    }),
+
+    /** Get account info */
+    account: adminProcedure.query(async () => {
+      return lightspeed.getAccount();
+    }),
+
+    /** Get products from Lightspeed */
+    products: router({
+      list: adminProcedure
+        .input(
+          z.object({
+            limit: z.number().min(1).max(250).optional().default(100),
+            offset: z.number().min(0).optional().default(0),
+            categoryID: z.string().optional(),
+          })
+        )
+        .query(async ({ input }) => {
+          const { items, count } = await lightspeed.getItems({
+            limit: input.limit,
+            offset: input.offset,
+            categoryID: input.categoryID,
+            archived: false,
+          });
+
+          return {
+            items: items.map((item) => ({
+              itemId: item.itemID,
+              description: item.description,
+              sku: item.customSku || item.systemSku,
+              upc: item.upc,
+              categoryName: item.Category?.name ?? "Uncategorized",
+              categoryId: item.categoryID,
+              manufacturer: item.Manufacturer?.name ?? null,
+              price:
+                item.Prices?.ItemPrice?.find((p) => p.useType === "Default")?.amount ??
+                item.Prices?.ItemPrice?.[0]?.amount ??
+                "0",
+              imageUrl: item.Images?.Image
+                ? `${item.Images.Image.baseImageURL}medium.${item.Images.Image.publicID}`
+                : null,
+              qoh: item.ItemShops?.ItemShop
+                ? (Array.isArray(item.ItemShops.ItemShop)
+                    ? item.ItemShops.ItemShop
+                    : [item.ItemShops.ItemShop]
+                  ).reduce((sum, s) => sum + (parseInt(s.qoh, 10) || 0), 0)
+                : 0,
+              tags: item.Tags?.tag
+                ? Array.isArray(item.Tags.tag)
+                  ? item.Tags.tag
+                  : [item.Tags.tag]
+                : [],
+              createdAt: item.createTime,
+              updatedAt: item.timeStamp,
+            })),
+            total: count,
+          };
+        }),
+
+      getById: adminProcedure
+        .input(z.object({ itemId: z.string() }))
+        .query(async ({ input }) => {
+          const item = await lightspeed.getItemById(input.itemId);
+          if (!item) return null;
+
+          return {
+            itemId: item.itemID,
+            description: item.description,
+            sku: item.customSku || item.systemSku,
+            upc: item.upc,
+            ean: item.ean,
+            categoryName: item.Category?.name ?? "Uncategorized",
+            categoryId: item.categoryID,
+            manufacturer: item.Manufacturer?.name ?? null,
+            defaultCost: item.defaultCost,
+            avgCost: item.avgCost,
+            prices:
+              item.Prices?.ItemPrice?.map((p) => ({
+                amount: p.amount,
+                type: p.useType,
+              })) ?? [],
+            imageUrl: item.Images?.Image
+              ? `${item.Images.Image.baseImageURL}medium.${item.Images.Image.publicID}`
+              : null,
+            inventory: item.ItemShops?.ItemShop
+              ? (Array.isArray(item.ItemShops.ItemShop)
+                  ? item.ItemShops.ItemShop
+                  : [item.ItemShops.ItemShop]
+                ).map((s) => ({
+                  shopId: s.shopID,
+                  qoh: parseInt(s.qoh, 10) || 0,
+                  sellable: parseInt(s.sellable, 10) || 0,
+                  reorderPoint: parseInt(s.reorderPoint, 10) || 0,
+                  reorderLevel: parseInt(s.reorderLevel, 10) || 0,
+                }))
+              : [],
+            tags: item.Tags?.tag
+              ? Array.isArray(item.Tags.tag)
+                ? item.Tags.tag
+                : [item.Tags.tag]
+              : [],
+            customFields:
+              item.CustomFieldValues?.CustomFieldValue?.map((cf) => ({
+                name: cf.name,
+                value: cf.value,
+              })) ?? [],
+            createdAt: item.createTime,
+            updatedAt: item.timeStamp,
+          };
+        }),
+
+      search: adminProcedure
+        .input(z.object({ query: z.string().min(1), limit: z.number().optional().default(50) }))
+        .query(async ({ input }) => {
+          const items = await lightspeed.searchItems(input.query, input.limit);
+          return items.map((item) => ({
+            itemId: item.itemID,
+            description: item.description,
+            sku: item.customSku || item.systemSku,
+            categoryName: item.Category?.name ?? "Uncategorized",
+            price:
+              item.Prices?.ItemPrice?.find((p) => p.useType === "Default")?.amount ??
+              item.Prices?.ItemPrice?.[0]?.amount ??
+              "0",
+            imageUrl: item.Images?.Image
+              ? `${item.Images.Image.baseImageURL}medium.${item.Images.Image.publicID}`
+              : null,
+          }));
+        }),
+    }),
+
+    /** Get categories from Lightspeed */
+    categories: adminProcedure.query(async () => {
+      const cats = await lightspeed.getCategories();
+      return cats.map((c) => ({
+        categoryId: c.categoryID,
+        name: c.name,
+        fullPath: c.fullPathName,
+        parentId: c.parentID ?? null,
+      }));
+    }),
+
+    /** Inventory management */
+    inventory: router({
+      forItem: adminProcedure
+        .input(z.object({ itemId: z.string() }))
+        .query(async ({ input }) => {
+          return lightspeed.getInventoryForItem(input.itemId);
+        }),
+
+      lowStock: adminProcedure
+        .input(
+          z.object({
+            threshold: z.number().min(0).optional().default(5),
+            shopId: z.string().optional(),
+          })
+        )
+        .query(async ({ input }) => {
+          const items = await lightspeed.getLowStockItems(input.threshold, input.shopId);
+          return items.map((item) => ({
+            itemId: item.itemID,
+            description: item.description,
+            sku: item.customSku || item.systemSku,
+            qoh: item.ItemShops?.ItemShop
+              ? (Array.isArray(item.ItemShops.ItemShop)
+                  ? item.ItemShops.ItemShop
+                  : [item.ItemShops.ItemShop]
+                ).reduce((sum, s) => sum + (parseInt(s.qoh, 10) || 0), 0)
+              : 0,
+          }));
+        }),
+    }),
+
+    /** Customer management */
+    customers: router({
+      list: adminProcedure
+        .input(
+          z.object({
+            limit: z.number().min(1).max(250).optional().default(100),
+            offset: z.number().min(0).optional().default(0),
+          })
+        )
+        .query(async ({ input }) => {
+          const { customers, count } = await lightspeed.getCustomers({
+            limit: input.limit,
+            offset: input.offset,
+            archived: false,
+          });
+
+          return {
+            customers: customers.map((c) => ({
+              customerId: c.customerID,
+              firstName: c.firstName,
+              lastName: c.lastName,
+              company: c.company,
+              email:
+                c.Contact?.Emails?.ContactEmail?.[0]?.address ?? null,
+              phone:
+                c.Contact?.Phones?.ContactPhone?.[0]?.number ?? null,
+              address: c.Contact?.Addresses?.ContactAddress?.[0] ?? null,
+              createdAt: c.createTime,
+            })),
+            total: count,
+          };
+        }),
+
+      getById: adminProcedure
+        .input(z.object({ customerId: z.string() }))
+        .query(async ({ input }) => {
+          const customer = await lightspeed.getCustomerById(input.customerId);
+          if (!customer) return null;
+
+          return {
+            customerId: customer.customerID,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            company: customer.company,
+            email:
+              customer.Contact?.Emails?.ContactEmail?.[0]?.address ?? null,
+            phone:
+              customer.Contact?.Phones?.ContactPhone?.[0]?.number ?? null,
+            addresses:
+              customer.Contact?.Addresses?.ContactAddress?.map((a) => ({
+                address1: a.address1,
+                address2: a.address2,
+                city: a.city,
+                state: a.state,
+                zip: a.zip,
+                country: a.country,
+              })) ?? [],
+            createdAt: customer.createTime,
+          };
+        }),
+
+      create: adminProcedure
+        .input(
+          z.object({
+            firstName: z.string().min(1),
+            lastName: z.string().min(1),
+            email: z.string().email().optional(),
+            phone: z.string().optional(),
+            address: z
+              .object({
+                address1: z.string(),
+                city: z.string(),
+                state: z.string(),
+                zip: z.string(),
+                country: z.string().optional(),
+              })
+              .optional(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          const customer = await lightspeed.createCustomer(input);
+          return { customerId: customer.customerID };
+        }),
+    }),
+
+    /** Sales/Orders */
+    sales: router({
+      list: adminProcedure
+        .input(
+          z.object({
+            limit: z.number().min(1).max(250).optional().default(50),
+            offset: z.number().min(0).optional().default(0),
+            completed: z.boolean().optional(),
+          })
+        )
+        .query(async ({ input }) => {
+          const { sales, count } = await lightspeed.getSales({
+            limit: input.limit,
+            offset: input.offset,
+            completed: input.completed,
+          });
+
+          return {
+            sales: sales.map((s) => ({
+              saleId: s.saleID,
+              ticketNumber: s.ticketNumber,
+              completed: s.completed === "true",
+              voided: s.voided === "true",
+              total: s.total,
+              totalDue: s.totalDue,
+              calcSubtotal: s.calcSubtotal,
+              calcTax1: s.calcTax1,
+              lineCount: s.SaleLines?.SaleLine
+                ? Array.isArray(s.SaleLines.SaleLine)
+                  ? s.SaleLines.SaleLine.length
+                  : 1
+                : 0,
+              customerId: s.customerID,
+              employeeId: s.employeeID,
+              shopId: s.shopID,
+              completeTime: s.completeTime,
+              createTime: s.createTime,
+            })),
+            total: count,
+          };
+        }),
+
+      getById: adminProcedure
+        .input(z.object({ saleId: z.string() }))
+        .query(async ({ input }) => {
+          const sale = await lightspeed.getSaleById(input.saleId);
+          if (!sale) return null;
+
+          const lines = sale.SaleLines?.SaleLine
+            ? Array.isArray(sale.SaleLines.SaleLine)
+              ? sale.SaleLines.SaleLine
+              : [sale.SaleLines.SaleLine]
+            : [];
+
+          const payments = sale.SalePayments?.SalePayment
+            ? Array.isArray(sale.SalePayments.SalePayment)
+              ? sale.SalePayments.SalePayment
+              : [sale.SalePayments.SalePayment]
+            : [];
+
+          return {
+            saleId: sale.saleID,
+            ticketNumber: sale.ticketNumber,
+            completed: sale.completed === "true",
+            voided: sale.voided === "true",
+            total: sale.total,
+            totalDue: sale.totalDue,
+            subtotal: sale.displayableSubtotal,
+            tax: sale.calcTax1,
+            customerId: sale.customerID,
+            employeeId: sale.employeeID,
+            shopId: sale.shopID,
+            lines: lines.map((l) => ({
+              lineId: l.saleLineID,
+              itemId: l.itemID,
+              itemName: l.Item?.description ?? "Unknown",
+              quantity: parseInt(l.unitQuantity, 10),
+              unitPrice: l.unitPrice,
+              total: l.calcTotal,
+              discount: l.discountAmount,
+            })),
+            payments: payments.map((p) => ({
+              paymentId: p.salePaymentID,
+              amount: p.amount,
+              type: p.PaymentType?.name ?? "Unknown",
+            })),
+            shipTo: sale.shipTo ?? null,
+            completeTime: sale.completeTime,
+            createTime: sale.createTime,
+          };
+        }),
+
+      create: adminProcedure
+        .input(
+          z.object({
+            shopID: z.string().optional(),
+            customerID: z.string().optional(),
+            lines: z.array(
+              z.object({
+                itemID: z.string(),
+                unitQuantity: z.number().min(1),
+                unitPrice: z.string().optional(),
+              })
+            ),
+          })
+        )
+        .mutation(async ({ input }) => {
+          const sale = await lightspeed.createSale(input);
+          return { saleId: sale.saleID, ticketNumber: sale.ticketNumber };
+        }),
+    }),
+
+    /** Sync products from Lightspeed to LiquorDash database */
+    syncProducts: adminProcedure.mutation(async () => {
+      const { items } = await lightspeed.getItems({ limit: 250, archived: false });
+      let synced = 0;
+      let errors = 0;
+
+      for (const item of items) {
+        try {
+          const price =
+            item.Prices?.ItemPrice?.find((p) => p.useType === "Default")?.amount ??
+            item.Prices?.ItemPrice?.[0]?.amount ??
+            "0";
+
+          const imageUrl = item.Images?.Image
+            ? `${item.Images.Image.baseImageURL}medium.${item.Images.Image.publicID}`
+            : "https://placehold.co/400x400/f5f5f5/999?text=No+Image";
+
+          const qoh = item.ItemShops?.ItemShop
+            ? (Array.isArray(item.ItemShops.ItemShop)
+                ? item.ItemShops.ItemShop
+                : [item.ItemShops.ItemShop]
+              ).reduce((sum, s) => sum + (parseInt(s.qoh, 10) || 0), 0)
+            : 0;
+
+          const categorySlug = (item.Category?.name ?? "uncategorized")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+
+          await db.insertProduct({
+            name: item.description || "Unnamed Product",
+            brand: item.Manufacturer?.name ?? "Unknown",
+            categorySlug,
+            price,
+            volume: "750ml",
+            abv: "0%",
+            rating: "0.0",
+            reviewCount: 0,
+            imageUrl,
+            description: item.description || "",
+            inStock: qoh > 0,
+            expressAvailable: qoh > 0,
+            shippingAvailable: true,
+            featured: false,
+            premium: false,
+          });
+          synced++;
+        } catch (err) {
+          errors++;
+          console.error(`[Lightspeed Sync] Failed to sync item ${item.itemID}:`, err);
+        }
+      }
+
+      return {
+        success: true,
+        synced,
+        errors,
+        total: items.length,
+      };
     }),
   }),
 
