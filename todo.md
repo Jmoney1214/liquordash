@@ -175,3 +175,4 @@
 - [x] Fix TypeScript errors in admin/lightspeed.tsx
 - [x] Add Lightspeed Quick Action to admin dashboard
 - [x] Complete OAuth flow to get access/refresh tokens
+- [x] Fix publish error: "no expo project found" — updated app.json with full config matching app.config.ts
