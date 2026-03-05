@@ -186,3 +186,5 @@
 - [x] URGENT: APK build still failing at 1% and resetting - root cause: git branch divergence
 - [x] Run all 6 user-requested diagnostic checks
 - [x] Identify and fix root cause of silent build failure - reset local main to origin/main
+- [x] Create reusable skill for diagnosing and fixing Expo/EAS APK build failures
+- [x] Audit app with expo-build-doctor and make publishable
