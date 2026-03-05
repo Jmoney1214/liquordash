@@ -5,43 +5,36 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "manus20260215021059",
+    "scheme": "liquordash",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "space.manus.liquordash.t20260215021059",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "bundleIdentifier": "space.manus.liquordash"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png",
-        "backgroundColor": "#1B2838"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "space.manus.liquordash.t20260215021059",
-      "permissions": [
-        "POST_NOTIFICATIONS"
-      ],
+      "package": "space.manus.liquordash",
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
             {
-              "scheme": "manus20260215021059",
-              "host": "*"
+              "scheme": "https",
+              "host": "*.manus.space",
+              "pathPrefix": "/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -52,49 +45,31 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset",
       "expo-font",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-        }
-      ],
-      [
-        "expo-video",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
-        }
-      ],
+      "expo-asset",
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#1B2838",
-          "dark": {
-            "backgroundColor": "#1B2838"
-          }
+          "backgroundColor": "#ffffff"
         }
       ],
       [
-        "expo-build-properties",
+        "expo-audio",
         {
-          "android": {
-            "buildArchs": [
-              "armeabi-v7a",
-              "arm64-v8a"
-            ],
-            "minSdkVersion": 24
-          }
+          "microphonePermission": "Allow LiquorDash to access your microphone."
         }
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "liquordash"
+      }
     }
   }
 }

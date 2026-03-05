@@ -177,3 +177,4 @@
 - [x] Complete OAuth flow to get access/refresh tokens
 - [x] Fix publish error: "no expo project found" — updated app.json with full config matching app.config.ts
 - [x] Fix persistent "no expo project found" publish error — removed broken app.config.js bridge that crashed Node.js
+- [x] CRITICAL: Delete app.config.ts, use only app.json for EAS Build compatibility
