@@ -195,3 +195,9 @@
 - [ ] Test Lightspeed POS connection end-to-end
 - [x] Create new Lightspeed API app with correct callback URI
 - [x] Update LIGHTSPEED_CLIENT_ID and LIGHTSPEED_CLIENT_SECRET with new credentials
+- [x] Set up GitHub Actions CI workflow for code quality checks on every push (user needs to add .github/workflows/ci.yml manually due to GitHub App permissions)
+- [x] Fix all issues and publish the app
+- [x] Fix CI workflow path (github/ → .github/)
+- [x] Sync git branches
+- [x] Run expo-build-doctor audit
+- [x] Save clean publishable checkpoint
