@@ -178,3 +178,8 @@
 - [x] Fix publish error: "no expo project found" — updated app.json with full config matching app.config.ts
 - [x] Fix persistent "no expo project found" publish error — removed broken app.config.js bridge that crashed Node.js
 - [x] CRITICAL: Delete app.config.ts, use only app.json for EAS Build compatibility
+- [x] URGENT: Fix APK build failing at 1% and resetting
+- [x] Verify app.config.ts is deleted and only app.json exists
+- [x] Run expo-doctor to diagnose build issues
+- [x] Clean up any interfering config files
+- [x] Save clean checkpoint for successful build
