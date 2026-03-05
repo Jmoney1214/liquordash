@@ -201,3 +201,4 @@
 - [x] Sync git branches
 - [x] Run expo-build-doctor audit
 - [x] Save clean publishable checkpoint
+- [x] Fix APK build failing at 93% - disabled New Architecture, removed unused native deps (react-native-maps, expo-location), added packagingOptions for duplicate .so files
