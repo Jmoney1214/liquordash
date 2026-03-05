@@ -188,3 +188,10 @@
 - [x] Identify and fix root cause of silent build failure - reset local main to origin/main
 - [x] Create reusable skill for diagnosing and fixing Expo/EAS APK build failures
 - [x] Audit app with expo-build-doctor and make publishable
+- [ ] Connect Lightspeed POS to pull real Legacy Liquors inventory
+- [ ] Audit existing Lightspeed integration code
+- [ ] Configure Lightspeed API credentials
+- [ ] Implement/verify inventory sync flow
+- [ ] Test Lightspeed POS connection end-to-end
+- [x] Create new Lightspeed API app with correct callback URI
+- [x] Update LIGHTSPEED_CLIENT_ID and LIGHTSPEED_CLIENT_SECRET with new credentials
