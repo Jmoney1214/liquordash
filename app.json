@@ -10,7 +10,7 @@
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "space.manus.liquordash.t20260215021059",
+      "bundleIdentifier": "com.justin.etwaru.liquordash",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

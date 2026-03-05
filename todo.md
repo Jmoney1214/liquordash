@@ -204,3 +204,4 @@
 - [x] Fix APK build failing at 93% - disabled New Architecture, removed unused native deps (react-native-maps, expo-location), added packagingOptions for duplicate .so files
 - [x] Fix iOS build: slug mismatch (app-template vs liquordash) in package.json
 - [x] Fix iOS build: add cli.appVersionSource to eas.json
+- [x] Set iOS bundle identifier to com.justin.etwaru.liquordash in app.json
