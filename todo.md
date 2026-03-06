@@ -206,3 +206,4 @@
 - [x] Fix iOS build: add cli.appVersionSource to eas.json
 - [x] Set iOS bundle identifier to com.justin.etwaru.liquordash in app.json
 - [x] Fix eas.json with real Apple credentials (justin.etwaru@gmail.com, ASC 6759822835, Team 5X26G9SZ8R)
+- [x] URGENT: iOS build stuck at bundle identifier prompt - fixed with credentialsSource:remote + bundleIdentifier in eas.json + promptToConfigurePushNotifications:false
