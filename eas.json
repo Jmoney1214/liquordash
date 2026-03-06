@@ -8,30 +8,15 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "credentialsSource": "remote",
-      "ios": {
-        "bundleIdentifier": "com.justin.etwaru.liquordash"
-      },
-      "android": {
-        "buildType": "apk"
-      }
+      "credentialsSource": "remote"
     },
     "preview": {
       "distribution": "internal",
-      "credentialsSource": "remote",
-      "ios": {
-        "bundleIdentifier": "com.justin.etwaru.liquordash"
-      },
-      "android": {
-        "buildType": "apk"
-      }
+      "credentialsSource": "remote"
     },
     "production": {
       "autoIncrement": true,
-      "credentialsSource": "remote",
-      "ios": {
-        "bundleIdentifier": "com.justin.etwaru.liquordash"
-      }
+      "credentialsSource": "remote"
     }
   },
   "submit": {
