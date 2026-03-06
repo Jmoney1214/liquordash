@@ -211,4 +211,4 @@
 - [x] Sync project with latest changes from GitHub repository
 - [x] Fix iOS build stuck at interactive prompt - ensure fully non-interactive build configuration (added EXPO_NO_INTERACTIVE=1 env var to all build profiles)
 - [x] Sync project with latest GitHub changes (March 6 second sync)
-- [ ] Export full source code for external iOS build via EAS/Xcode/TestFlight
+- [x] Export full source code for external iOS build via EAS/Xcode/TestFlight
