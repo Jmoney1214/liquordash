@@ -205,3 +205,4 @@
 - [x] Fix iOS build: slug mismatch (app-template vs liquordash) in package.json
 - [x] Fix iOS build: add cli.appVersionSource to eas.json
 - [x] Set iOS bundle identifier to com.justin.etwaru.liquordash in app.json
+- [x] Fix eas.json with real Apple credentials (justin.etwaru@gmail.com, ASC 6759822835, Team 5X26G9SZ8R)

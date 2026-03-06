@@ -16,6 +16,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "justin.etwaru@gmail.com",
+        "ascAppId": "6759822835",
+        "appleTeamId": "5X26G9SZ8R"
+      }
+    }
   }
 }
