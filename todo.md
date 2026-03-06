@@ -212,3 +212,4 @@
 - [x] Fix iOS build stuck at interactive prompt - ensure fully non-interactive build configuration (added EXPO_NO_INTERACTIVE=1 env var to all build profiles)
 - [x] Sync project with latest GitHub changes (March 6 second sync)
 - [x] Export full source code for external iOS build via EAS/Xcode/TestFlight
+- [x] Audit all external services and create comprehensive .env template with API key instructions
