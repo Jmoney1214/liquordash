@@ -1,0 +1,38 @@
+# ═══════════════════════════════════════════════════════════════════
+# LiquorDash .env Template
+# ═══════════════════════════════════════════════════════════════════
+# Copy this file to .env and fill in the values:
+#   cp env-template.txt .env
+#
+# See ENV_SETUP_GUIDE.md for detailed instructions on each variable.
+# ═══════════════════════════════════════════════════════════════════
+
+# ─── App Identity (Manus OAuth) ─────────────────────────────────
+VITE_APP_ID=
+VITE_OAUTH_PORTAL_URL=
+OAUTH_SERVER_URL=
+OWNER_OPEN_ID=
+OWNER_NAME=
+
+# ─── Database ────────────────────────────────────────────────────
+DATABASE_URL=
+
+# ─── Server Security ────────────────────────────────────────────
+JWT_SECRET=
+
+# ─── Uber Direct (Delivery) ─────────────────────────────────────
+UBER_DIRECT_CLIENT_ID=
+UBER_DIRECT_CLIENT_SECRET=
+UBER_DIRECT_CUSTOMER_ID=
+
+# ─── Lightspeed Retail (POS / Inventory) ────────────────────────
+LIGHTSPEED_CLIENT_ID=
+LIGHTSPEED_CLIENT_SECRET=
+
+# ─── AI & Storage (Manus Platform — optional) ───────────────────
+BUILT_IN_FORGE_API_URL=
+BUILT_IN_FORGE_API_KEY=
+
+# ─── Runtime ─────────────────────────────────────────────────────
+NODE_ENV=development
+PORT=3000
