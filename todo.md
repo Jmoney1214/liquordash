@@ -208,3 +208,5 @@
 - [x] Fix eas.json with real Apple credentials (justin.etwaru@gmail.com, ASC 6759822835, Team 5X26G9SZ8R)
 - [x] URGENT: iOS build stuck at bundle identifier prompt - fixed with credentialsSource:remote + bundleIdentifier in eas.json + promptToConfigurePushNotifications:false
 - [x] Fix eas.json validation: remove disallowed bundleIdentifier from build profiles
+- [x] Sync project with latest changes from GitHub repository
+- [x] Fix iOS build stuck at interactive prompt - ensure fully non-interactive build configuration (added EXPO_NO_INTERACTIVE=1 env var to all build profiles)

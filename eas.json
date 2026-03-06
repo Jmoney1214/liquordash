@@ -8,15 +8,33 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "credentialsSource": "remote"
+      "credentialsSource": "remote",
+      "env": {
+        "EXPO_NO_INTERACTIVE": "1"
+      },
+      "ios": {
+        "resourceClass": "default"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "credentialsSource": "remote"
+      "credentialsSource": "remote",
+      "env": {
+        "EXPO_NO_INTERACTIVE": "1"
+      },
+      "ios": {
+        "resourceClass": "default"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "credentialsSource": "remote"
+      "credentialsSource": "remote",
+      "env": {
+        "EXPO_NO_INTERACTIVE": "1"
+      },
+      "ios": {
+        "resourceClass": "default"
+      }
     }
   },
   "submit": {
