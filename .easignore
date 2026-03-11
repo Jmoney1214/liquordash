@@ -1,0 +1,24 @@
+# Server-only code (not needed for mobile builds)
+server/
+drizzle/
+dist/
+
+# Development files
+.github/
+__tests__/
+tests/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation
+*.md
+!README.md
+
+# Dev config
+.vscode/
+.idea/
+
+# Large unnecessary files
+screenshots/

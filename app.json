@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "manus20260215021059",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "space.manus.liquordash.t20260215021059",
@@ -66,6 +66,13 @@
         }
       ],
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#1B4332"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -80,8 +87,13 @@
       [
         "expo-build-properties",
         {
+          "ios": {
+            "deploymentTarget": "15.1",
+            "newArchEnabled": true
+          },
           "android": {
             "minSdkVersion": 24,
+            "newArchEnabled": true,
             "packagingOptions": {
               "pickFirst": [
                 "**/libc++_shared.so",
@@ -96,6 +108,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "22f81d04-9437-4c4a-80d8-0a8facb16f48"
+      }
+    },
+    "owner": "justin.etwaru"
   }
 }
