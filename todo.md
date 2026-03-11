@@ -217,4 +217,4 @@
 - [x] Set up automated version syncing between iOS and Android builds
 - [ ] Fix expo-audio plugin resolution failure on user's local Mac build — identify sandbox vs repo mismatch
 - [x] Sync project with latest GitHub changes (March 11 sync)
-- [ ] Comprehensive iOS EAS build audit: fix all build blockers, config mismatches, dependency issues
+- [x] Comprehensive iOS EAS build audit: fix all build blockers, config mismatches, dependency issues
