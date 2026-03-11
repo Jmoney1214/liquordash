@@ -213,5 +213,7 @@
 - [x] Sync project with latest GitHub changes (March 6 second sync)
 - [x] Export full source code for external iOS build via EAS/Xcode/TestFlight
 - [x] Audit all external services and create comprehensive .env template with API key instructions
-- [ ] Fix iOS bundleIdentifier in app.json to com.justin.etwaru.liquordash so EAS build doesn't prompt
+- [x] Fix iOS bundleIdentifier in app.json to space.manus.liquordash.t20260215021059 (synced from GitHub PR #2)
 - [x] Set up automated version syncing between iOS and Android builds
+- [ ] Fix expo-audio plugin resolution failure on user's local Mac build — identify sandbox vs repo mismatch
+- [x] Sync project with latest GitHub changes (March 11 sync)
