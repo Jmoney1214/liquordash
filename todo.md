@@ -218,3 +218,4 @@
 - [ ] Fix expo-audio plugin resolution failure on user's local Mac build — identify sandbox vs repo mismatch
 - [x] Sync project with latest GitHub changes (March 11 sync)
 - [x] Comprehensive iOS EAS build audit: fix all build blockers, config mismatches, dependency issues
+- [x] Set up EAS Submit to auto-upload iOS builds to TestFlight (autoSubmit: true in eas.json)
