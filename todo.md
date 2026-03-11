@@ -219,3 +219,4 @@
 - [x] Sync project with latest GitHub changes (March 11 sync)
 - [x] Comprehensive iOS EAS build audit: fix all build blockers, config mismatches, dependency issues
 - [x] Set up EAS Submit to auto-upload iOS builds to TestFlight (autoSubmit: true in eas.json)
+- [x] Set up EAS Workflow to auto-build iOS and submit to TestFlight on push to main
