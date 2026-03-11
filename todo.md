@@ -213,3 +213,5 @@
 - [x] Sync project with latest GitHub changes (March 6 second sync)
 - [x] Export full source code for external iOS build via EAS/Xcode/TestFlight
 - [x] Audit all external services and create comprehensive .env template with API key instructions
+- [ ] Fix iOS bundleIdentifier in app.json to com.justin.etwaru.liquordash so EAS build doesn't prompt
+- [x] Set up automated version syncing between iOS and Android builds
