@@ -28,6 +28,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "autoSubmit": true,
       "credentialsSource": "remote",
       "env": {
         "EXPO_NO_INTERACTIVE": "1"
