@@ -4,7 +4,7 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
+SUPABASE_URL = "https://rffvoreqcpkqqxwprosg.supabase.co"
 N8N_WEBHOOK_URL = "https://legacywineandliquor.app.n8n.cloud/webhook/elevenlabs-call-complete"
 
 # Secrets (set via `wrangler secret put <NAME>`):

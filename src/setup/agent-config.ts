@@ -7,7 +7,10 @@ import { SYSTEM_PROMPT } from "./system-prompt";
  * agent-configuration-2.md. Sections marked TODO need external doc content.
  */
 
-const WORKER_BASE_URL = process.env.WORKER_URL ?? "https://legacy-elevenlabs-agent.YOUR-SUBDOMAIN.workers.dev";
+const WORKER_BASE_URL = process.env.WORKER_URL;
+if (!WORKER_BASE_URL) {
+  throw new Error("WORKER_URL environment variable is required (e.g. https://legacy-elevenlabs-agent.xxx.workers.dev)");
+}
 
 export const agentConfig = {
   name: "Riley — Legacy Wine & Liquor",
