@@ -86,10 +86,7 @@ export const agentConfig = {
     // ─── Turn-taking Configuration ──────────────────────────────────
     turn: {
       turn_timeout: 8,
-      mode: {
-        type: "turn_based",
-        eagerness: "normal",
-      },
+      mode: "turn",
       silence_end_call_timeout: 30,
     },
 

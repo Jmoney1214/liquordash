@@ -45,7 +45,7 @@ async function main() {
 
     const formData = new FormData();
     const fileContent = fs.readFileSync(filePath);
-    formData.append("file", new Blob([fileContent]), filename);
+    formData.append("file", new Blob([fileContent], { type: "text/markdown" }), filename);
 
     try {
       const uploadRes = await fetch(`${API_BASE}/knowledge-base`, {
