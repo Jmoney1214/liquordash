@@ -10,6 +10,24 @@ if (!WORKER_BASE_URL) {
   throw new Error("WORKER_URL environment variable is required (e.g. https://legacy-elevenlabs-agent.xxx.workers.dev)");
 }
 
+function webhookTool(
+  name: string,
+  description: string,
+  path: string,
+  schema: Record<string, unknown>
+) {
+  return {
+    type: "webhook" as const,
+    name,
+    description,
+    webhook: {
+      url: `${WORKER_BASE_URL}/tools/${path}`,
+      method: "POST",
+      api_schema: schema,
+    },
+  };
+}
+
 export const agentConfig = {
   name: "Riley — Legacy Wine & Liquor",
 
@@ -21,16 +39,11 @@ export const agentConfig = {
         temperature: 0.4,
         max_tokens: 300,
         tools: [
-          {
-            type: "webhook",
-            name: "check_inventory",
-            description:
-              "Search the store's product inventory by name, brand, or category. Returns matching products with price, stock status, and availability.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/check_inventory`,
-              method: "POST",
-            },
-            parameters: {
+          webhookTool(
+            "check_inventory",
+            "Search the store's product inventory by name, brand, or category. Returns matching products with price, stock status, and availability.",
+            "check_inventory",
+            {
               type: "object",
               properties: {
                 product_name: {
@@ -43,18 +56,13 @@ export const agentConfig = {
                 },
               },
               required: ["product_name"],
-            },
-          },
-          {
-            type: "webhook",
-            name: "lookup_customer",
-            description:
-              "Look up a customer's full context by phone number. Returns their profile, preferences, recent interactions, and pending restock interests.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/lookup_customer`,
-              method: "POST",
-            },
-            parameters: {
+            }
+          ),
+          webhookTool(
+            "lookup_customer",
+            "Look up a customer's full context by phone number. Returns their profile, preferences, recent interactions, and pending restock interests.",
+            "lookup_customer",
+            {
               type: "object",
               properties: {
                 phone: {
@@ -63,18 +71,13 @@ export const agentConfig = {
                 },
               },
               required: ["phone"],
-            },
-          },
-          {
-            type: "webhook",
-            name: "log_caller",
-            description:
-              "Log a call interaction with the customer's details and call outcome. Call this before ending the conversation.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/log_caller`,
-              method: "POST",
-            },
-            parameters: {
+            }
+          ),
+          webhookTool(
+            "log_caller",
+            "Log a call interaction with the customer's details and call outcome. Call this before ending the conversation.",
+            "log_caller",
+            {
               type: "object",
               properties: {
                 phone: {
@@ -106,18 +109,13 @@ export const agentConfig = {
                 },
               },
               required: ["phone"],
-            },
-          },
-          {
-            type: "webhook",
-            name: "add_to_waitlist",
-            description:
-              "Add a customer to the restock notification waitlist for an out-of-stock product.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/add_to_waitlist`,
-              method: "POST",
-            },
-            parameters: {
+            }
+          ),
+          webhookTool(
+            "add_to_waitlist",
+            "Add a customer to the restock notification waitlist for an out-of-stock product.",
+            "add_to_waitlist",
+            {
               type: "object",
               properties: {
                 customer_id: {
@@ -142,18 +140,13 @@ export const agentConfig = {
                 },
               },
               required: ["product_name", "phone"],
-            },
-          },
-          {
-            type: "webhook",
-            name: "smart_recommend",
-            description:
-              "Generate personalized product recommendations based on the customer's taste profile, occasion, and budget.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/smart_recommend`,
-              method: "POST",
-            },
-            parameters: {
+            }
+          ),
+          webhookTool(
+            "smart_recommend",
+            "Generate personalized product recommendations based on the customer's taste profile, occasion, and budget.",
+            "smart_recommend",
+            {
               type: "object",
               properties: {
                 customer_id: {
@@ -170,18 +163,13 @@ export const agentConfig = {
                 },
               },
               required: [],
-            },
-          },
-          {
-            type: "webhook",
-            name: "update_preferences",
-            description:
-              "Save or update customer taste preferences learned during the conversation.",
-            webhook: {
-              url: `${WORKER_BASE_URL}/tools/update_preferences`,
-              method: "POST",
-            },
-            parameters: {
+            }
+          ),
+          webhookTool(
+            "update_preferences",
+            "Save or update customer taste preferences learned during the conversation.",
+            "update_preferences",
+            {
               type: "object",
               properties: {
                 customer_id: {
@@ -195,8 +183,8 @@ export const agentConfig = {
                 },
               },
               required: ["customer_id", "preferences"],
-            },
-          },
+            }
+          ),
         ],
       },
       first_message:
@@ -206,7 +194,7 @@ export const agentConfig = {
 
     tts: {
       model_id: "eleven_turbo_v2_5",
-      voice_id: "21m00Tcm4TlvDq8ikWAM", // Rachel — warm, friendly, American female
+      voice_id: "21m00Tcm4TlvDq8ikWAM",
       stability: 0.45,
       similarity_boost: 0.8,
       speed: 1.05,
