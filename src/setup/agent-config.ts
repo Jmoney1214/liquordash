@@ -34,7 +34,7 @@ export const agentConfig = {
 
     // ─── TTS Configuration ──────────────────────────────────────────
     tts: {
-      model_id: "eleven_flash_v2_5",
+      model_id: "eleven_turbo_v2_5",
       voice_id: "", // TODO: Set from ElevenLabs voice library
       stability: 0.45,
       similarity_boost: 0.8,
